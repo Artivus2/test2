@@ -5,7 +5,7 @@
 using namespace std;
 
 HANDLE hConsole4 = GetStdHandle(STD_OUTPUT_HANDLE);
-int main()
+int main_4()
 {
     /*¬ходными данными €вл€ютс€ :
     ≈мкость аккумул€тора смартфона(мјч.) Ц > 3000
