@@ -11,12 +11,15 @@
 #define IDI_WINDOWSPROJECT1             107
 #define IDI_SMALL                       108
 #define IDC_WINDOWSPROJECT1             109
+#define IDC_MYLABEL_X					150
+#define IDC_MYLABEL_Y					151
 #define IDR_MAINFRAME                   128
 #define IDM_NEWGAME                     200
 #define IDC_X							201
 #define IDC_Y							202
 #define IDC_STATIC2                     1001
 #define IDC_STATIC                      -1
+
 
 // Next default values for new objects
 // 

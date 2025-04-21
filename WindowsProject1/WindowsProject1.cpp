@@ -10,6 +10,9 @@
 
 #define MAX_LOADSTRING 100
 
+
+using namespace std;
+
 // Глобальные переменные:
 HINSTANCE hInst;                                // текущий экземпляр
 WCHAR szTitle[MAX_LOADSTRING];                  // Текст строки заголовка
@@ -17,6 +20,10 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // имя класса глав�
 
 HWND labelX = NULL;
 HWND labelY = NULL;
+HWND labelMainX = NULL;
+HWND labelMainY = NULL;
+//HWND buttons[16];
+vector<HWND> buttons;
 int xPosAbout(0), yPosAbout(0), xPos(0), yPos(0);
 
 // Отправить объявления функций, включенных в этот модуль кода:
@@ -25,6 +32,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
+LRESULT CALLBACK    ButtonAll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
 WNDPROC OldButtonProc;
 
 //drag&drop
@@ -82,8 +90,22 @@ LPCWSTR setText(int a) {
 
 void printTable(HWND hwnd) {
     
+    labelMainX = CreateWindowExW(
+        0, L"STATIC", L"X",
+        WS_CHILD | WS_VISIBLE | SS_LEFT, // Стили окна
+        10, 10, 30, 25,             // Позиция и размеры
+        hwnd, NULL, NULL, NULL
+    );
+    labelMainY = CreateWindowExW(
+        0, L"STATIC", L"Y",
+        WS_CHILD | WS_VISIBLE | SS_LEFT, // Стили окна
+        10, 35, 300, 25,             // Позиция и размеры
+        hwnd, (HMENU)IDC_MYLABEL_Y, NULL, NULL
+    );
     
     int x(0), y(0);
+    
+    buttons.resize(16);
 
 
     for (int i = 0; i <= 15; i++) {
@@ -94,16 +116,16 @@ void printTable(HWND hwnd) {
         }
       
         
-        CreateWindowW(
+        buttons[i] = CreateWindowW(
             L"BUTTON",  // Предопределенный класс кнопки
             setText(board[i]), // Текст кнопки
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, // Стиль кнопки
             50 + x,         // Положение по X
-            50 + y,         // Положение по Y
+            80 + y,         // Положение по Y
             50,        // Ширина
             50,         // Высота
             hwnd,       // Родительское окно
-            NULL,   // Идентификатор кнопки
+            (HMENU)2000+i,   // Идентификатор кнопки
             (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), // Дескриптор приложения
             NULL);      // Дополнительные параметры
         x += 70;
@@ -265,7 +287,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // Сохранить маркер экземпляра в глобальной переменной
 
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-       CW_USEDEFAULT, CW_USEDEFAULT, 380, 430, nullptr, nullptr, hInstance, nullptr);
+       CW_USEDEFAULT, CW_USEDEFAULT, 380, 480, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
    {
@@ -288,26 +310,37 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_DESTROY  - отправить сообщение о выходе и вернуться
 //
 //
-
-
-
+//LPCWSTR GetWindowTextString(HWND hwnd) {
+//    int len = GetWindowTextLength(hwnd);
+//    wchar_t text[3];
+//    //text.resize(len + 1); // +1 для null-терминатора
+//    GetWindowTextW(hwnd, &text[0], 1);
+//    //text.resize(len); // Удаляем null-терминатор
+//    return text;
+//}
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     //int buttonid = LOWORD(lParam);
-    int x(0);
+    int x(0), x1(0);
     bool result(false);
     wchar_t text[3];
+    wchar_t textXY[3];
     HWND hButton = (HWND)lParam;
     HWND hButtonNull;
+    int buttonId = LOWORD(wParam);
+    
     switch (message)
         {
         
     case WM_COMMAND:
     {
+        
+
         GetWindowTextW(hButton, text, sizeof(text) / sizeof(text[0]));
-        x = _wtoi(text);
+        x1 = _wtoi(text);
+        SetWindowText(labelMainY, setText(buttonId));
         //MessageBoxW(hWnd, L"Вы нажали кнопку!", std::to_wstring(x).c_str(), MB_OK);
         result = manualswap(hWnd, x);
         if (result) {
@@ -315,15 +348,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             hButtonNull = FindWindowExW(hWnd, NULL, L"BUTTON", L" ");
             SetWindowTextW(hButtonNull, setText(x));
             SetWindowTextW(hButton, L" ");
-            //LPCWSTR bufer0 = setText(x);
-            //SetWindowTextW(hButton, bufer0);
-            ////MessageBoxW(hWnd, L"Вы нажали кнопку!", bufer0, MB_OK);
-            //LPCWSTR buferx = setText(x);
-            //hButtonNull = FindWindowExW(hWnd, NULL, L"BUTTON", L"X");
-            ////MessageBoxW(hWnd, L"Вы нажали кнопку!", buferx, MB_OK);
-            //SetWindowTextW(hButtonNull, buferx);
-            //bufer0 = setText(0);
-            //SetWindowTextW(hButton, bufer0);
+            POINT cursorPos;
+            GetCursorPos(&cursorPos); // Получаем позицию курсора в экранных координатах
+            ScreenToClient(hButton, &cursorPos); // Преобразуем координаты курсора в координаты относительно кнопки
+
+            
         }
 
 
@@ -366,9 +395,50 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         printTable(hWnd);
 
+        
+
+
 
 
         return 0;
+    }
+
+    case WM_MOUSEMOVE: {
+        xPos = LOWORD(lParam);  // Получаем X-координату
+        yPos = HIWORD(lParam);  // Получаем Y-координату
+        std::wstring xStr = std::to_wstring(xPos);
+        //std::wstring yStr = std::to_wstring(yPos);
+        
+        SetWindowText(labelMainX, xStr.c_str());
+        POINT cursorPos = { xPos, yPos };
+        HWND hwndUnderMouse = ChildWindowFromPoint(hWnd, cursorPos);
+        //std::string windowText = GetWindowTextString(hwndUnderMouse);
+        /*std::stringstream ss;
+        ss << (uintptr_t)hwndUnderMouse;*/
+        GetWindowTextW(hwndUnderMouse, textXY, sizeof(textXY) / sizeof(textXY[0]));
+        //LPCWSTR windowText = GetWindowTextString(hwndUnderMouse);
+        //x1 = _wtoi(textXY);
+
+        //GetWindowTextW(hwndUnderMouse, textXY, sizeof(textXY) / sizeof(textXY[0]));
+        //SetWindowText(labelMainY, );
+        //SetWindowText(labelMainY, setText(x1));
+        //for (int i = 0; i < 16; ++i) {
+        //    //    //std::string buttonText = "Кнопка " + std::to_string(i + 1);
+        //    std::string buttonText = std::to_string(i + 1);
+        //    //    SetWindowText(labelMainY, L"1");
+        //    if (x == i + 1) {
+        //        SetWindowText(labelMainY, setText(x1));
+
+        //        break; // Выходим из цикла, так как кнопка найдена
+        //        //    //}
+        //    }
+        //}
+
+        
+        
+
+
+
     }
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
