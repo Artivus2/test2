@@ -13,11 +13,11 @@ void fun (int a = 10, int b = 20){
 	b = temp;
 	cout << "a: " << a << ", b: " << b;
 
-	return 
+	
 }
 
 
-int main()
+int main_3_1()
 {
 	/*int a(1), b(1);
 	float c(7.2), result;
@@ -39,7 +39,7 @@ int main()
 
 	cout << c << '\n';
 
-	a = (b = 3, b + 2);
+	(int) a = (b = 3, b + 2);
 
 	a = 0;
 	b = 3;

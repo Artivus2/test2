@@ -127,10 +127,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="exam.cpp" />
+    <ClCompile Include="Fifteens.cpp" />
+    <ClCompile Include="test10.cpp" />
+    <ClCompile Include="test11.cpp" />
+    <ClCompile Include="test12.cpp" />
+    <ClCompile Include="test13.cpp" />
+    <ClCompile Include="test14.cpp" />
+    <ClCompile Include="test15.cpp" />
+    <ClCompile Include="test16.cpp" />
+    <ClCompile Include="test18.cpp" />
+    <ClCompile Include="test19.cpp" />
+    <ClCompile Include="test20.cpp" />
+    <ClCompile Include="test25.cpp" />
     <ClCompile Include="test3-1.cpp" />
     <ClCompile Include="test3.cpp" />
     <ClCompile Include="test2.cpp" />
     <ClCompile Include="test4.cpp" />
+    <ClCompile Include="test5-1.cpp" />
+    <ClCompile Include="test6.cpp" />
+    <ClCompile Include="test8.cpp" />
+    <ClCompile Include="test9.cpp" />
+    <ClCompile Include="testGUIfifteens.cpp" />
+    <ClCompile Include="x64\test7.cpp" />
+    <ClCompile Include="test17.cpp" />
+    <ClCompile Include="XO.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

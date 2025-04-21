@@ -1,2 +1,49 @@
-﻿  test3-1.cpp
-  test2.vcxproj -> C:\Users\Илья\Documents\GitHub\cpp\test2\test2\x64\Debug\test2.exe
+﻿Сборка начата 04.04.2025 18:10:03.
+Уровень детализации журнала: Normal.     1>Проект "C:\Users\Илья\Documents\GitHub\cpp\test2\test2\test2\test2.vcxproj" в узле 2 (целевые объекты Build).
+     1>PrepareForBuild:
+         Структурированный вывод включен. Форматирование диагностики компилятора будет отражать иерархию ошибок. Подробнее см. https://aka.ms/cpp/structured-output.
+       InitializeBuildStatus:
+         Обращение к "x64\Debug\test2.tlog\unsuccessfulbuild".
+       ClCompile:
+         Для всех выходных данных обновления не требуется.
+       Link:
+         C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\bin\HostX64\x64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Илья\Documents\GitHub\cpp\test2\test2\x64\Debug\test2.exe" /INCREMENTAL /ILK:"x64\Debug\test2.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Илья\Documents\GitHub\cpp\test2\test2\x64\Debug\test2.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Илья\Documents\GitHub\cpp\test2\test2\x64\Debug\test2.lib" /MACHINE:X64 x64\Debug\exam.obj
+         x64\Debug\Fifteens.obj
+         x64\Debug\test10.obj
+         x64\Debug\test11.obj
+         x64\Debug\test12.obj
+         x64\Debug\test13.obj
+         x64\Debug\test14.obj
+         x64\Debug\test15.obj
+         x64\Debug\test16.obj
+         x64\Debug\test18.obj
+         x64\Debug\test19.obj
+         x64\Debug\test20.obj
+         x64\Debug\test25.obj
+         "x64\Debug\test3-1.obj"
+         x64\Debug\test3.obj
+         x64\Debug\test2.obj
+         x64\Debug\test4.obj
+         "x64\Debug\test5-1.obj"
+         x64\Debug\test6.obj
+         x64\Debug\test8.obj
+         x64\Debug\test9.obj
+         x64\Debug\testGUIfifteens.obj
+         x64\Debug\test7.obj
+         x64\Debug\test17.obj
+         x64\Debug\XO.obj
+     1>MSVCRTD.lib(exe_main.obj) : error LNK2019: ссылка на неразрешенный внешний символ main в функции "int __cdecl invoke_main(void)" (?invoke_main@@YAHXZ).
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\test2\x64\Debug\test2.exe : fatal error LNK1120: неразрешенных внешних элементов: 1
+     1>Сборка проекта "C:\Users\Илья\Documents\GitHub\cpp\test2\test2\test2\test2.vcxproj" завершена (целевые объекты Build) с ошибкой.
+
+Ошибка сборки.
+
+       "C:\Users\Илья\Documents\GitHub\cpp\test2\test2\test2\test2.vcxproj" (целевой объект Build ) (1) ->
+       (Целевой объект Link) -> 
+         MSVCRTD.lib(exe_main.obj) : error LNK2019: ссылка на неразрешенный внешний символ main в функции "int __cdecl invoke_main(void)" (?invoke_main@@YAHXZ).
+         C:\Users\Илья\Documents\GitHub\cpp\test2\test2\x64\Debug\test2.exe : fatal error LNK1120: неразрешенных внешних элементов: 1
+
+    Предупреждений: 0
+    Ошибок: 2
+
+Прошло времени 00:00:00.25
