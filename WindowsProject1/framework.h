@@ -18,3 +18,6 @@
 #include <string>
 #include <sstream> 
 #include <vector> 
+#include <winsock2.h> // Winsock header
+#include <ws2tcpip.h>  // Additional Winsock functions (e.g., inet_pton)
+

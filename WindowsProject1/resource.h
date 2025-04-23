@@ -11,15 +11,18 @@
 #define IDI_WINDOWSPROJECT1             107
 #define IDI_SMALL                       108
 #define IDC_WINDOWSPROJECT1             109
-#define IDC_MYLABEL_X					150
-#define IDC_MYLABEL_Y					151
 #define IDR_MAINFRAME                   128
+#define IDC_MYLABEL_X                   150
+#define IDC_MYLABEL_Y                   151
 #define IDM_NEWGAME                     200
-#define IDC_X							201
-#define IDC_Y							202
+#define IDC_X                           201
+#define IDC_Y                           202
+#define IDM_CONGAME                     203
 #define IDC_STATIC2                     1001
+#define ID_Menu                         32773
+#define ID_32774                        32774
+#define ID_Menu32775                    32775
 #define IDC_STATIC                      -1
-
 
 // Next default values for new objects
 // 
@@ -27,7 +30,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        129
-#define _APS_NEXT_COMMAND_VALUE         32773
+#define _APS_NEXT_COMMAND_VALUE         32776
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
