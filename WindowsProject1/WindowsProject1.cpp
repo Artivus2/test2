@@ -1,5 +1,5 @@
 ﻿// WindowsProject1.cpp : Определяет точку входа для приложения.
-//
+//https://github.com/Artivus2/test2
 
 #include <string.h>
 #include "framework.h"
@@ -129,7 +129,7 @@ void printTable(HWND hwnd) {
             (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), // Дескриптор приложения
             NULL);      // Дополнительные параметры
         x += 70;
-
+        SetWindowSubclass(buttons[i], ButtonAll, 1, 0);
     };
 }
 
@@ -331,19 +331,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     HWND hButtonNull;
     int buttonId = LOWORD(wParam);
     
+    
     switch (message)
         {
         
     case WM_COMMAND:
     {
         
-
+        
         GetWindowTextW(hButton, text, sizeof(text) / sizeof(text[0]));
-        x1 = _wtoi(text);
+        x = _wtoi(text);
         SetWindowText(labelMainY, setText(buttonId));
         //MessageBoxW(hWnd, L"Вы нажали кнопку!", std::to_wstring(x).c_str(), MB_OK);
         result = manualswap(hWnd, x);
         if (result) {
+            
             //SetWindowTextW(hButton, setText(-1));
             hButtonNull = FindWindowExW(hWnd, NULL, L"BUTTON", L" ");
             SetWindowTextW(hButtonNull, setText(x));
@@ -411,11 +413,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         
         SetWindowText(labelMainX, xStr.c_str());
         POINT cursorPos = { xPos, yPos };
-        HWND hwndUnderMouse = ChildWindowFromPoint(hWnd, cursorPos);
+        HWND hwndUnderMouse = ChildWindowFromPointEx(hButton, cursorPos, CWP_ALL);
+        GetWindowTextW(hwndUnderMouse, textXY, sizeof(textXY) / sizeof(textXY[0]));
+        /*for (int i = 0; i < 16; i++) {
+            HWND hwndButtonById = GetDlgItem(hwndUnderMouse, 2000 + i);
+            GetWindowTextW(hwndUnderMouse, textXY, sizeof(textXY) / sizeof(textXY[0]));
+            break;
+        }*/
+        SetWindowText(labelMainY, textXY);
+        
         //std::string windowText = GetWindowTextString(hwndUnderMouse);
         /*std::stringstream ss;
         ss << (uintptr_t)hwndUnderMouse;*/
-        GetWindowTextW(hwndUnderMouse, textXY, sizeof(textXY) / sizeof(textXY[0]));
+        //GetWindowTextW(hwndUnderMouse, textXY, sizeof(textXY) / sizeof(textXY[0]));
         //LPCWSTR windowText = GetWindowTextString(hwndUnderMouse);
         //x1 = _wtoi(textXY);
 
@@ -454,99 +464,78 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 //    return wnum.c_str();
 //}
 
- //Обработчик сообщений для окна "О кнопке".
-LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData) 
+LRESULT CALLBACK ButtonAll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData)
 {
     POINT cursorPos;
-    //HWND labelX = GetDlgItem(HWND_TOP, IDC_X);
-    //HWND labelY = GetDlgItem(HWND_TOP, IDC_Y);
+    xPos = LOWORD(lParam);  // Получаем X-координату
+    yPos = HIWORD(lParam);  // Получаем Y-координату
+    int buttonId = GetDlgCtrlID(hwnd);
 
     switch (uMsg)
     {
+        case WM_MOUSEMOVE: {
+            POINT cursorPos = { xPos, yPos };
+            std::wstring xStr = std::to_wstring(xPos);
+            std::wstring yStr = std::to_wstring(yPos);
+            SetWindowText(labelMainX, setText(xPos));
+            SetWindowText(labelMainY, setText(yPos));
+            HWND hwndUnderMouse = ChildWindowFromPointEx(hwnd, cursorPos, CWP_ALL);
+            //SetWindowText(hwndUnderMouse, setText(buttonId));
+            SetWindowText(labelMainY, setText(buttonId));
+
+
+        }
+        return DefSubclassProc(hwnd, uMsg, wParam, lParam);   // Передаем сообщение дальше
+
+    default:
+        return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+    }
+}
+
+
+ //Обработчик сообщений для окна "О кнопке".
+LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData) 
+{
+    HWND hwndParentOfButton = GetParent(hwnd);
+    switch(uMsg) {
+        case WM_LBUTTONDOWN:
+        // Проверяем, нажата ли кнопка мыши над кнопкой
+        if (hwnd != NULL) {
+            POINT cursorPos;
+            GetCursorPos(&cursorPos);
+            ScreenToClient(hwnd, &cursorPos); // Преобразуем в координаты относительно кнопки
+
+            // Проверяем, находится ли курсор внутри области кнопки
+            RECT buttonRect;
+            GetClientRect(hwnd, &buttonRect);
+            if (PtInRect(&buttonRect, cursorPos)) {
+                isDragging = true;
+                dragOffset = cursorPos; // Запоминаем смещение
+                SetCapture(hwnd); // Захватываем мышь
+            }
+        }
+        return 0;
+
+    case WM_MOUSEMOVE:
+        if (isDragging) {
+            POINT cursorPos;
+            GetCursorPos(&cursorPos);
+            ScreenToClient(hwndParentOfButton, &cursorPos); // Преобразуем в координаты относительно родительского окна
+
+            // Устанавливаем новую позицию кнопки
+            SetWindowPos(hwnd, NULL,
+                cursorPos.x - dragOffset.x,
+                cursorPos.y - dragOffset.y,
+                0, 0, SWP_NOSIZE | SWP_NOZORDER);
+        }
+        return 0;
+
     case WM_LBUTTONUP:
-        //MessageBoxW(hwnd, L"Вы нажали кнопку!", L"отжата ЛКП", MB_OK);
         if (isDragging) {
             isDragging = false;
-            
             ReleaseCapture(); // Освобождаем захват мыши
         }
-        //POINT cursorPos;
-        //GetCursorPos(&cursorPos); // Получаем позицию курсора в экранных координатах
-        //ScreenToClient(hwnd, &cursorPos); // Преобразуем координаты курсора в координаты относительно кнопки
-
-        ////    //    // Проверяем, находится ли курсор внутри области кнопки
-        //RECT buttonRect;
-        //GetClientRect(hwnd, &buttonRect);
-        //if (PtInRect(&buttonRect, cursorPos)) {
-        //    isDragging = true;
-        //    dragOffset = cursorPos; // Запоминаем смещение
-        //    SetCapture(hwnd); // Захватываем мышь
-        //}
-        //for (int i = 0; i < 100; i++) {
-        /*SetWindowPos(hwnd, HWND_TOP,
-            xPosAbout - xPos,
-            yPosAbout - yPos, 0, 0, SWP_NOSIZE);*/
-        //Sleep(1);
-        //}*/
-        //ReleaseCapture();
         return 0;
-    case WM_LBUTTONDOWN:
-        
-        //if (isDragging && xPos > 0 && xPos <100) {
-        //    SetCapture(hwnd); // Захватываем мышь
-        //    SetWindowPos(hwnd, HWND_TOP,
-        //        xPosAbout - xPos,
-        //        yPosAbout - yPos, 0, 0, SWP_NOSIZE);
-         /*isDragging = false;*/
-         //SetCapture(hwnd); // Захватываем мышь
-        //}
-        //
-                    // Проверяем, нажата ли кнопка мыши над кнопкой
-                    //MessageBoxW(hDlg, L"Вы нажали кнопку!", L"нажата ЛКП", MB_OK);
-                    //SetWindowTextW(hwnd, L"Нажата");
-                //if (hButton != NULL && (HWND)wParam == hDlg) { // Проверяем, что нажали ЛКМ
-                    //    //MessageBoxW(hDlg, L"Вы нажали кнопку!", L"нажата ЛКП2222", MB_OK);
-                //    POINT cursorPos;
-                //    GetCursorPos(&cursorPos); // Получаем позицию курсора в экранных координатах
-                //    ScreenToClient(hwnd, &cursorPos); // Преобразуем координаты курсора в координаты относительно кнопки
-
-                //////    //    // Проверяем, находится ли курсор внутри области кнопки
-                //    RECT buttonRect;
-                //    GetClientRect(hwnd, &buttonRect);
-                //    if (PtInRect(&buttonRect, cursorPos)) {
-                //            isDragging = true;
-                //            dragOffset = cursorPos; // Запоминаем смещение
-                //            SetCapture(hwnd); // Захватываем мышь
-                //        }
-                ////    
-                //return 0;        
-    case WM_MOUSEMOVE: {
-        isDragging = true;
-        //MessageBoxW(hwnd, L"Вы нажали кнопку!", L"нажата ЛКП", MB_OK);
-        xPos = LOWORD(lParam);  // Получаем X-координату
-        yPos = HIWORD(lParam);  // Получаем Y-координату
-        //POINT cursorPos;
-        //GetCursorPos(&cursorPos); // Получаем позицию курсора в экранных координатах
-        //ScreenToClient(hwnd, &cursorPos); // Преобразуем координаты курсора в координаты относительно кнопки
-        //std::wstring xStr = std::to_wstring(cursorPos.x);
-        //std::wstring yStr = std::to_wstring(cursorPos.y);
-        //SetWindowText(labelY, yStr.c_str());
-        //SetWindowText(labelX, xStr.c_str());
-        //swprintf_s(&snum, 8, L"%l", num);
-
-
-            if (isDragging) {
-            //    
-            //    GetCursorPos(&cursorPos);
-            //    ScreenToClient(hwnd, &cursorPos); // Преобразуем координаты в координаты относительно окна
-                SetWindowPos(hwnd, HWND_TOP,
-                    xPosAbout,
-                    yPosAbout, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
-                // Устанавливаем новую позицию кнопки
-                
-            }
-            //return 0;
-    }
         return DefSubclassProc(hwnd, uMsg, wParam, lParam);   // Передаем сообщение дальше
 
     default:
@@ -558,85 +547,131 @@ LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, 
  //Обработчик сообщений для окна "О программе".
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(lParam);
-    //HWND hButton = (HWND)(wParam);
-    HWND hButton = GetDlgItem(hDlg, IDOK);
-    labelX = GetDlgItem(hDlg, IDC_X);
-    labelY = GetDlgItem(hDlg, IDC_Y);
-    //DWORD style = GetWindowLong(labelX, GWL_STYLE);
-    SetWindowSubclass(hButton, ButtonProc, 1, 0);
     
-    switch (message)
-    {
-    
+    HWND hwndButton = (HWND)lParam;
+    SetWindowSubclass(hwndButton, ButtonProc, 1, 0);
+    switch (message) {
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
+
     
 
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-
-    case WM_MOUSEMOVE: {
-
-        
-        xPosAbout = LOWORD(lParam);  // Получаем X-координату
-        yPosAbout = HIWORD(lParam);  // Получаем Y-координату
-        
-        //std::wstring xStr = std::to_wstring(xPos);
-        //std::wstring yStr = std::to_wstring(yPos);
-        
-        POINT cursorPos;
-        GetCursorPos(&cursorPos); // Получаем позицию курсора в экранных координатах
-        ScreenToClient(hDlg, &cursorPos); // Преобразуем координаты курсора в координаты относительно кнопки
-        std::wstring xStr = std::to_wstring(cursorPos.x);
-        std::wstring yStr = std::to_wstring(cursorPos.y);
-        SetWindowText(labelY, yStr.c_str());
-        SetWindowText(labelX, xStr.c_str());
-        
-
-        //MessageBoxW(hDlg, L"Вы нажали кнопку!", L"отжата1", MB_OK);
-
+    default:
+        return DefWindowProc(hDlg, message, wParam, lParam);
     }
 
-    case WM_COMMAND:
-        int wmId = LOWORD(wParam);
 
-        //switch (wmId)
-        //{
-        //
 
-        
 
-        //case WM_LBUTTONUP:
-        //    if (isDragging) {
-        //        isDragging = false;
-        //        ReleaseCapture(); // Освобождаем захват мыши
-        //    }
-        //    return 0;
 
-        //}
-        if (wmId == IDOK) {
-            isDragging = false;
-        }
-        //    HWND hwndLabel = GetDlgItem(hDlg, IDC_STATIC2);
-        //    DWORD style = GetWindowLong(hwndLabel, GWL_STYLE);
-        //    if (style & WS_VISIBLE) {
-        //        // Скрываем text
-        //        ShowWindow(hwndLabel, SW_HIDE);
-        //        
-        //    }
-        //    else {
-        //        // Отображаем label
-        //        ShowWindow(hwndLabel, SW_SHOW);
-        //        
-        //    }
-        //}
-        if (LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-            
-    return (INT_PTR)FALSE;
+    //UNREFERENCED_PARAMETER(lParam);
+    ////HWND hButton = (HWND)(wParam);
+    //HWND hButton = GetDlgItem(hDlg, IDOK);
+    //labelX = GetDlgItem(hDlg, IDC_X);
+    //labelY = GetDlgItem(hDlg, IDC_Y);
+    ////DWORD style = GetWindowLong(labelX, GWL_STYLE);
+    
+    //
+    //switch (message)
+    //{
+    //
+    //
+
+    //case WM_INITDIALOG:
+    //    return (INT_PTR)TRUE;
+
+
+    //case WM_MOUSEMOVE: {
+
+    //    
+    //    //xPosAbout = LOWORD(lParam);  // Получаем X-координату
+    //    //yPosAbout = HIWORD(lParam);  // Получаем Y-координату
+    //    //POINT cursorPos;
+    //    //POINT cursorPos = { xPos, yPos };
+    //    ////std::wstring xStr = std::to_wstring(xPos);
+    //    ////std::wstring yStr = std::to_wstring(yPos);
+    //    //
+    //    //
+    //    //GetCursorPos(&cursorPos); // Получаем позицию курсора в экранных координатах
+    //    //ScreenToClient(hDlg, &cursorPos); // Преобразуем координаты курсора в координаты относительно кнопки
+    //    //std::wstring xStr = std::to_wstring(cursorPos.x);
+    //    //std::wstring yStr = std::to_wstring(cursorPos.y);
+    //    //SetWindowText(labelY, yStr.c_str());
+    //    //SetWindowText(labelX, xStr.c_str());
+    //    //
+
+    //    ////MessageBoxW(hDlg, L"Вы нажали кнопку!", L"отжата1", MB_OK);
+    //    if (isDragging) {
+    //        POINT cursorPos;
+    //        GetCursorPos(&cursorPos);
+    //        ScreenToClient(hDlg, &cursorPos); // Преобразуем в координаты относительно родительского окна
+
+    //        // Устанавливаем новую позицию кнопки
+    //        SetWindowPos(hDlg, NULL,
+    //            cursorPos.x - dragOffset.x,
+    //            cursorPos.y - dragOffset.y,
+    //            0, 0, SWP_NOSIZE | SWP_NOZORDER);
+    //    }
+    //    return 0;
+    //}
+
+    //case WM_COMMAND:
+    //    //int wmId = LOWORD(wParam);
+
+    //    //switch (wmId)
+    //    //{
+    //    //
+
+    //case WM_LBUTTONDOWN:
+    //    // Проверяем, нажата ли кнопка мыши над кнопкой
+    //    if (hDlg != NULL) {
+    //        POINT cursorPos;
+    //        GetCursorPos(&cursorPos);
+    //        ScreenToClient(hDlg, &cursorPos); // Преобразуем в координаты относительно кнопки
+
+    //        // Проверяем, находится ли курсор внутри области кнопки
+    //        RECT buttonRect;
+    //        GetClientRect(hDlg, &buttonRect);
+    //        if (PtInRect(&buttonRect, cursorPos)) {
+    //            isDragging = true;
+    //            dragOffset = cursorPos; // Запоминаем смещение
+    //            SetCapture(hDlg); // Захватываем мышь
+    //        }
+    //    }
+    //    return 0;
+
+    //    case WM_LBUTTONUP:
+    //        if (isDragging) {
+    //            isDragging = false;
+    //            ReleaseCapture(); // Освобождаем захват мыши
+    //        }
+    //        return 0;
+
+
+    //    /*if (wmId == IDOK) {
+    //        isDragging = false;
+    //    }*/
+    //    //    HWND hwndLabel = GetDlgItem(hDlg, IDC_STATIC2);
+    //    //    DWORD style = GetWindowLong(hwndLabel, GWL_STYLE);
+    //    //    if (style & WS_VISIBLE) {
+    //    //        // Скрываем text
+    //    //        ShowWindow(hwndLabel, SW_HIDE);
+    //    //        
+    //    //    }
+    //    //    else {
+    //    //        // Отображаем label
+    //    //        ShowWindow(hwndLabel, SW_SHOW);
+    //    //        
+    //    //    }
+    //    //}
+    //    if (LOWORD(wParam) == IDCANCEL)
+    //    {
+    //        EndDialog(hDlg, LOWORD(wParam));
+    //        return (INT_PTR)TRUE;
+    //    }
+    //    break;
+    //}
+    //        
+    //return (INT_PTR)FALSE;
 }
