@@ -1,43 +1,7 @@
-﻿Сборка начата 23.04.2025 20:46:14.
-Уровень детализации журнала: Normal.     1>Проект "C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.vcxproj" в узле 2 (целевые объекты Build).
-     1>PrepareForBuild:
-         Структурированный вывод включен. Форматирование диагностики компилятора будет отражать иерархию ошибок. Подробнее см. https://aka.ms/cpp/structured-output.
-       InitializeBuildStatus:
-         Обращение к "WindowsProject1\x64\Debug\WindowsProject1.tlog\unsuccessfulbuild".
-       ClCompile:
-         C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\bin\HostX64\x64\CL.exe /c /ZI /JMC /nologo /W3 /WX- /diagnostics:column /sdl /Od /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /permissive- /Fo"WindowsProject1\x64\Debug\\" /Fd"WindowsProject1\x64\Debug\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:prompt WindowsProject1.cpp
-         WindowsProject1.cpp
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(81,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(695,18): error C2601: ButtonAll: недопустимые локальные определения функций
-             C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(359,9):
-             эта строка содержит скобку "{", которая пока не имеет парной
-         
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(725,18): error C2601: ButtonProc: недопустимые локальные определения функций
-             C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(359,9):
-             эта строка содержит скобку "{", которая пока не имеет парной
-         
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(776,18): error C2601: About: недопустимые локальные определения функций
-             C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(359,9):
-             эта строка содержит скобку "{", которая пока не имеет парной
-         
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(359,9): error C1075: "{": не найдена несоответствующая лексема
-     1>Сборка проекта "C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.vcxproj" завершена (целевые объекты Build) с ошибкой.
-
-Ошибка сборки.
-
-       "C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.vcxproj" (целевой объект Build ) (1) ->
-       (Целевой объект ClCompile) -> 
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(81,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-
-
-       "C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.vcxproj" (целевой объект Build ) (1) ->
-       (Целевой объект ClCompile) -> 
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(695,18): error C2601: ButtonAll: недопустимые локальные определения функций
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(725,18): error C2601: ButtonProc: недопустимые локальные определения функций
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(776,18): error C2601: About: недопустимые локальные определения функций
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(359,9): error C1075: "{": не найдена несоответствующая лексема
-
-    Предупреждений: 1
-    Ошибок: 4
-
-Прошло времени 00:00:01.55
+﻿  WindowsProject1.cpp
+C:\projects\test2\WindowsProject1\WindowsProject1.cpp(82,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+C:\projects\test2\WindowsProject1\WindowsProject1.cpp(537,13): warning C4101: textXY: неиспользованная локальная переменная
+C:\projects\test2\WindowsProject1\WindowsProject1.cpp(635,11): warning C4101: cursorPos: неиспользованная локальная переменная
+C:\projects\test2\WindowsProject1\WindowsProject1.cpp(463,1): warning C4715: startServer: значение возвращается не при всех путях выполнения
+C:\projects\test2\WindowsProject1\WindowsProject1.cpp(529,1): warning C4715: startClient: значение возвращается не при всех путях выполнения
+  WindowsProject1.vcxproj -> C:\projects\test2\WindowsProject1\x64\Debug\WindowsProject1.exe

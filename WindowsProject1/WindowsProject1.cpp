@@ -54,6 +54,7 @@ int sendX(-1);
 const int SERVER_PORT = 27000;
 const char* SERVER_ADDRESS = "127.0.0.1"; // Localhost
 const int BUFFER_SIZE = 512;
+bool serverStarted(false);
 
 
 void HandleWinsockError(const std::string& operation, HWND hwnd) {
@@ -257,7 +258,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
-            //check_connection();
+            //startServer(msg.hwnd);
         }
 
 
@@ -323,25 +324,209 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-//
-//  ФУНКЦИЯ: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  ЦЕЛЬ: Обрабатывает сообщения в главном окне.
-//
-//  WM_COMMAND  - обработать меню приложения
-//  WM_PAINT    - Отрисовка главного окна
-//  WM_DESTROY  - отправить сообщение о выходе и вернуться
-//
-//
-//LPCWSTR GetWindowTextString(HWND hwnd) {
-//    int len = GetWindowTextLength(hwnd);
-//    wchar_t text[3];
-//    //text.resize(len + 1); // +1 для null-терминатора
-//    GetWindowTextW(hwnd, &text[0], 1);
-//    //text.resize(len); // Удаляем null-терминатор
-//    return text;
-//}
+bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult) {
+    std::vector<SOCKET> clientSockets; // Keep track of connected clients.
+    u_long iMode = 1;
+    while (true) {
+        // Принять входящее соединение (неблокирующее)
+        sockaddr_in clientAddress;
+        int clientAddressLength = sizeof(clientAddress);
+        SOCKET clientSocket = accept(listenSocket, (sockaddr*)&clientAddress, &clientAddressLength);
 
+        if (clientSocket != INVALID_SOCKET) {
+            //std::cout << "Принято новое соединение" << std::endl;
+            MessageBoxW(hWnd, L"Принято новое соединение", L"Сообщение!", MB_OK);
+            clientSockets.push_back(clientSocket);
+
+            // Set new client socket to non-blocking mode as well
+            iResult = ioctlsocket(clientSocket, FIONBIO, &iMode);
+            if (iResult == SOCKET_ERROR) {
+                HandleWinsockError("ioctlsocket to set non-blocking mode for client", hWnd);
+                closesocket(clientSocket);
+                // Consider removing the client socket from the vector here if needed.
+            }
+        }
+        else {
+            if (WSAGetLastError() != WSAEWOULDBLOCK) {
+                HandleWinsockError("accept (non-blocking)", hWnd); // Log the error, but don't exit.
+            }
+        }
+
+        // Обработка данных от клиентов (неблокирующая)
+        for (auto it = clientSockets.begin(); it != clientSockets.end(); ) {
+            SOCKET currentClientSocket = *it;
+            char buffer[BUFFER_SIZE];
+            iResult = recv(currentClientSocket, buffer, BUFFER_SIZE - 1, 0);
+
+            if (iResult > 0) {
+                buffer[iResult] = '\0'; // Null-terminate the received data
+                //std::cout << "Получено от клиента: " << buffer << std::endl;
+                SetWindowTextA(labelMainY, buffer);
+                // Отправляем данные обратно клиенту (эхо-сервер)
+                iResult = send(currentClientSocket, buffer, iResult, 0);
+
+                //todo обрабабывем сообщения от клиента
+
+                if (iResult == SOCKET_ERROR) {
+                    HandleWinsockError("send", hWnd);
+                }
+            }
+            else if (iResult == 0) {
+                // Соединение закрыто клиентом
+
+                //std::cout << "Соединение с клиентом закрыто" << std::endl;
+                closesocket(currentClientSocket);
+                it = clientSockets.erase(it); // Удаляем сокет из вектора
+                continue; // Skip to the next client.
+            }
+            else {
+                if (WSAGetLastError() != WSAEWOULDBLOCK) {
+                    HandleWinsockError("recv", hWnd);
+                    closesocket(currentClientSocket);
+                    it = clientSockets.erase(it);
+                    continue;
+                }
+            }
+            ++it; // Advance the iterator only if the socket wasn't erased.
+        }
+
+        // Небольшая задержка (для уменьшения нагрузки на процессор)
+        Sleep(10);
+    }
+}
+
+bool startServer(HWND hWnd) {
+    
+    if (serverStarted) {
+        WSADATA wsaData;
+        int iResult;
+
+        // Инициализация Winsock
+        iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        if (iResult != 0) {
+            //std::cerr << "WSAStartup failed: " << iResult << std::endl;
+            MessageBoxW(hWnd, L"WSAStartup failed", L"Сообщение!", MB_OK);
+            return 1;
+        }
+
+
+        SOCKET listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (listenSocket == INVALID_SOCKET) {
+            HandleWinsockError("socket creation", hWnd);
+            WSACleanup();
+            return 1;
+        }
+        // Настройка адреса сервера
+        sockaddr_in serverAddress;
+        serverAddress.sin_family = AF_INET;
+        serverAddress.sin_port = htons(SERVER_PORT);
+        inet_pton(AF_INET, SERVER_ADDRESS, &(serverAddress.sin_addr));
+
+        iResult = bind(listenSocket, (sockaddr*)&serverAddress, sizeof(serverAddress));
+        if (iResult == SOCKET_ERROR) {
+            HandleWinsockError("bind", hWnd);
+            closesocket(listenSocket);
+            WSACleanup();
+            return 1;
+        }
+
+        // Перевод сокета в режим прослушивания
+        iResult = listen(listenSocket, SOMAXCONN); //SOMAXCONN - максимально возможное число подключений
+        if (iResult == SOCKET_ERROR) {
+            HandleWinsockError("listen", hWnd);
+            closesocket(listenSocket);
+            WSACleanup();
+            return 1;
+        }
+
+        MessageBoxW(hWnd, L"Socket готов к приему подключений", L"Сообщение!", MB_OK);
+
+        u_long iMode = 1; // 1 = non-blocking
+        iResult = ioctlsocket(listenSocket, FIONBIO, &iMode);
+        if (iResult == SOCKET_ERROR) {
+            HandleWinsockError("ioctlsocket to set non-blocking mode", hWnd);
+            closesocket(listenSocket);
+            WSACleanup();
+            return 1;
+        }
+
+
+
+        listenServer(hWnd, listenSocket, iResult);
+        // Завершение работы Winsock
+        closesocket(listenSocket);
+        WSACleanup();
+
+        return 0;
+    }
+
+}
+
+bool startClient(HWND hWnd) {
+    //DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            //MessageBoxW(hWnd, L"Вы нажали кнопку!", L"NEWGAME", MB_OK);
+            //клиент
+    WSADATA wsaData;
+    int iResult;
+
+    // Инициализация Winsock
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != 0) {
+        //std::cerr << "WSAStartup failed: " << iResult << std::endl;
+        return 1;
+    }
+
+    // Создание сокета клиента
+    SOCKET clientSocket1 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (clientSocket1 == INVALID_SOCKET) {
+        HandleWinsockError("socket creation", hWnd);
+        WSACleanup();
+        return 1;
+    }
+
+    // Настройка адреса сервера
+    sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(SERVER_PORT);
+    inet_pton(AF_INET, SERVER_ADDRESS, &(serverAddress.sin_addr));
+
+    // Подключение к серверу
+    iResult = connect(clientSocket1, (sockaddr*)&serverAddress, sizeof(serverAddress));
+    if (iResult == SOCKET_ERROR) {
+        HandleWinsockError("connect", hWnd);
+        closesocket(clientSocket1);
+        WSACleanup();
+        return 1;
+    }
+
+    //подключились
+    SetWindowTextA(labelMainY, "Подключились");
+    iResult = send(clientSocket1, "-1", 2, 0);
+    //if (iResult == SOCKET_ERROR) {
+    //    HandleWinsockError("send", hWnd);
+    //    break;
+    //}
+
+    //char buffer[BUFFER_SIZE];
+    //iResult = recv(clientSocket1, buffer, BUFFER_SIZE - 1, 0);
+    //if (iResult > 0) {
+    //    buffer[iResult] = '\0';
+    //    //std::cout << "Получено от сервера: " << buffer << std::endl;
+    //    SetWindowTextA(labelMainY, buffer);
+    //}
+    //else if (iResult == 0) {
+    //    //std::cout << "Соединение с сервером закрыто" << std::endl;
+    //    SetWindowTextA(labelMainY, buffer);
+    //    break;
+    //}
+    //else {
+    //    HandleWinsockError("recv", hWnd);
+    //    break;
+    //}
+
+    //closesocket(clientSocket1);
+    //WSACleanup();
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -358,6 +543,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
         {
         
+    case WM_MOUSEMOVE: {
+        //startServer(hWnd);
+    }
     case WM_COMMAND:
     {
 
@@ -384,219 +572,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         switch (wmId)
         {
-            case IDM_NEWGAME: {
-                //DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                //MessageBoxW(hWnd, L"Вы нажали кнопку!", L"NEWGAME", MB_OK);
-                //сервер
-                WSADATA wsaData;
-                int iResult;
-
-                // Инициализация Winsock
-                iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-                if (iResult != 0) {
-                    //std::cerr << "WSAStartup failed: " << iResult << std::endl;
-                    MessageBoxW(hWnd, L"WSAStartup failed", L"Сообщение!", MB_OK);
-                    return 1;
-                }
-
-
-                SOCKET listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-                if (listenSocket == INVALID_SOCKET) {
-                    HandleWinsockError("socket creation", hWnd);
-                    WSACleanup();
-                    return 1;
-                }
-                // Настройка адреса сервера
-                sockaddr_in serverAddress;
-                serverAddress.sin_family = AF_INET;
-                serverAddress.sin_port = htons(SERVER_PORT);
-                inet_pton(AF_INET, SERVER_ADDRESS, &(serverAddress.sin_addr));
-
-                iResult = bind(listenSocket, (sockaddr*)&serverAddress, sizeof(serverAddress));
-                if (iResult == SOCKET_ERROR) {
-                    HandleWinsockError("bind", hWnd);
-                    closesocket(listenSocket);
-                    WSACleanup();
-                    return 1;
-                }
-
-                // Перевод сокета в режим прослушивания
-                iResult = listen(listenSocket, SOMAXCONN); //SOMAXCONN - максимально возможное число подключений
-                if (iResult == SOCKET_ERROR) {
-                    HandleWinsockError("listen", hWnd);
-                    closesocket(listenSocket);
-                    WSACleanup();
-                    return 1;
-                }
-
-                MessageBoxW(hWnd, L"Socket готов к приему подключений", L"Сообщение!", MB_OK);
-
-                u_long iMode = 1; // 1 = non-blocking
-                iResult = ioctlsocket(listenSocket, FIONBIO, &iMode);
-                if (iResult == SOCKET_ERROR) {
-                    HandleWinsockError("ioctlsocket to set non-blocking mode", hWnd);
-                    closesocket(listenSocket);
-                    WSACleanup();
-                    return 1;
-                }
-
-                std::vector<SOCKET> clientSockets; // Keep track of connected clients.
-                while (true) {
-                    // Принять входящее соединение (неблокирующее)
-                    sockaddr_in clientAddress;
-                    int clientAddressLength = sizeof(clientAddress);
-                    SOCKET clientSocket = accept(listenSocket, (sockaddr*)&clientAddress, &clientAddressLength);
-
-                    if (clientSocket != INVALID_SOCKET) {
-                        //std::cout << "Принято новое соединение" << std::endl;
-                        MessageBoxW(hWnd, L"Принято новое соединение", L"Сообщение!", MB_OK);
-                        clientSockets.push_back(clientSocket);
-
-                        // Set new client socket to non-blocking mode as well
-                        iResult = ioctlsocket(clientSocket, FIONBIO, &iMode);
-                        if (iResult == SOCKET_ERROR) {
-                            HandleWinsockError("ioctlsocket to set non-blocking mode for client", hWnd);
-                            closesocket(clientSocket);
-                            // Consider removing the client socket from the vector here if needed.
-                        }
-                    }
-                    else {
-                        if (WSAGetLastError() != WSAEWOULDBLOCK) {
-                            HandleWinsockError("accept (non-blocking)", hWnd); // Log the error, but don't exit.
-                        }
-                    }
-
-                    // Обработка данных от клиентов (неблокирующая)
-                    for (auto it = clientSockets.begin(); it != clientSockets.end(); ) {
-                        SOCKET currentClientSocket = *it;
-                        char buffer[BUFFER_SIZE];
-                        iResult = recv(currentClientSocket, buffer, BUFFER_SIZE - 1, 0);
-
-                        if (iResult > 0) {
-                            buffer[iResult] = '\0'; // Null-terminate the received data
-                            //std::cout << "Получено от клиента: " << buffer << std::endl;
-                            SetWindowTextA(labelMainY, buffer);
-                            // Отправляем данные обратно клиенту (эхо-сервер)
-                            iResult = send(currentClientSocket, buffer, iResult, 0);
-
-                            //todo обрабабывем сообщения от клиента
-
-                            if (iResult == SOCKET_ERROR) {
-                                HandleWinsockError("send", hWnd);
-                            }
-                        }
-                        else if (iResult == 0) {
-                            // Соединение закрыто клиентом
-
-                            //std::cout << "Соединение с клиентом закрыто" << std::endl;
-                            closesocket(currentClientSocket);
-                            it = clientSockets.erase(it); // Удаляем сокет из вектора
-                            continue; // Skip to the next client.
-                        }
-                        else {
-                            if (WSAGetLastError() != WSAEWOULDBLOCK) {
-                                HandleWinsockError("recv", hWnd);
-                                closesocket(currentClientSocket);
-                                it = clientSockets.erase(it);
-                                continue;
-                            }
-                        }
-                        ++it; // Advance the iterator only if the socket wasn't erased.
-                    }
-
-                    // Небольшая задержка (для уменьшения нагрузки на процессор)
-                    Sleep(10);
-                }
-
-                // Завершение работы Winsock
-                closesocket(listenSocket);
-                WSACleanup();
-
-                return 0;
-
-                
-            }
-            break;
-
-            case IDM_CONGAME: {
-            //DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-            //MessageBoxW(hWnd, L"Вы нажали кнопку!", L"NEWGAME", MB_OK);
-            //клиент
-            WSADATA wsaData;
-            int iResult;
-
-            // Инициализация Winsock
-            iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-            if (iResult != 0) {
-                //std::cerr << "WSAStartup failed: " << iResult << std::endl;
-                return 1;
-            }
-
-            // Создание сокета клиента
-            SOCKET clientSocket1 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-            if (clientSocket1 == INVALID_SOCKET) {
-                HandleWinsockError("socket creation", hWnd);
-                WSACleanup();
-                return 1;
-            }
-
-            // Настройка адреса сервера
-            sockaddr_in serverAddress;
-            serverAddress.sin_family = AF_INET;
-            serverAddress.sin_port = htons(SERVER_PORT);
-            inet_pton(AF_INET, SERVER_ADDRESS, &(serverAddress.sin_addr));
-
-            // Подключение к серверу
-            iResult = connect(clientSocket1, (sockaddr*)&serverAddress, sizeof(serverAddress));
-            if (iResult == SOCKET_ERROR) {
-                HandleWinsockError("connect", hWnd);
-                closesocket(clientSocket1);
-                WSACleanup();
-                return 1;
-            }
-
-            //подключились
-            SetWindowTextA(labelMainY, "Подключились");
-            iResult = send(clientSocket1, "-1", 2, 0);
-            if (iResult == SOCKET_ERROR) {
-                HandleWinsockError("send", hWnd);
-                break;
-            }
-
-            char buffer[BUFFER_SIZE];
-            iResult = recv(clientSocket1, buffer, BUFFER_SIZE - 1, 0);
-            if (iResult > 0) {
-                buffer[iResult] = '\0';
-                //std::cout << "Получено от сервера: " << buffer << std::endl;
-                SetWindowTextA(labelMainY, buffer);
-            }
-            else if (iResult == 0) {
-                //std::cout << "Соединение с сервером закрыто" << std::endl;
-                SetWindowTextA(labelMainY, buffer);
-                break;
-            }
-            else {
-                HandleWinsockError("recv", hWnd);
-                break;
-            }
-
-            closesocket(clientSocket1);
-            WSACleanup();
-           
-        }
-            break;
-
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-
+        case IDM_NEWGAME: {
+            serverStarted = true;
             
+
         }
+                        break;
+
+        case IDM_CONGAME: {
+            startClient(hWnd);
+
+        }
+                        break;
+
+        case IDM_ABOUT:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            break;
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
+
+
+        }
+    }
         break;
     
 
