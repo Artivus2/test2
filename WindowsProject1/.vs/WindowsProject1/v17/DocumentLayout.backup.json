@@ -1,10 +1,13 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\projects\\test2\\WindowsProject1\\",
+  "WorkspaceRootPath": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{09D425A0-DCBB-480B-935C-FCF8F3E3C866}|WindowsProject1.vcxproj|C:\\projects\\test2\\WindowsProject1\\WindowsProject1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{09D425A0-DCBB-480B-935C-FCF8F3E3C866}|WindowsProject1.vcxproj|C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\WindowsProject1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{09D425A0-DCBB-480B-935C-FCF8F3E3C866}|WindowsProject1.vcxproj|solutionrelative:WindowsProject1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\test2\\test2\\test18.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,17 +17,30 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "test18.cpp",
+              "DocumentMoniker": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\test2\\test2\\test18.cpp",
+              "RelativeDocumentMoniker": "..\\test2\\test2\\test18.cpp",
+              "ToolTip": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\test2\\test2\\test18.cpp",
+              "RelativeToolTip": "..\\test2\\test2\\test18.cpp",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAAAFwAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-04-30T13:15:58.219Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "WindowsProject1.cpp",
-              "DocumentMoniker": "C:\\projects\\test2\\WindowsProject1\\WindowsProject1.cpp",
+              "DocumentMoniker": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\WindowsProject1.cpp",
               "RelativeDocumentMoniker": "WindowsProject1.cpp",
-              "ToolTip": "C:\\projects\\test2\\WindowsProject1\\WindowsProject1.cpp",
-              "RelativeToolTip": "WindowsProject1.cpp",
-              "ViewState": "AgIAAAwCAAAAAAAAAADwvyICAAAKAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\WindowsProject1.cpp*",
+              "RelativeToolTip": "WindowsProject1.cpp*",
+              "ViewState": "AgIAAH0BAAAAAAAAAAAMwIgBAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-04-23T12:26:55.392Z",
               "EditorCaption": ""
