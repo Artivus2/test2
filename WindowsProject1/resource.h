@@ -11,9 +11,13 @@
 #define IDI_WINDOWSPROJECT1             107
 #define IDI_SMALL                       108
 #define IDC_WINDOWSPROJECT1             109
+#define IDM_PINGPONG                    130
 #define IDR_MAINFRAME                   128
+#define IDD_DIALOG1                     129
 #define IDC_MYLABEL_X                   150
 #define IDC_MYLABEL_Y                   151
+#define IDC_MYLABEL_X1                  152
+#define IDC_MYLABEL_Y1                  153
 #define IDM_NEWGAME                     200
 #define IDC_X                           201
 #define IDC_Y                           202
@@ -29,7 +33,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        129
+#define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32776
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           110

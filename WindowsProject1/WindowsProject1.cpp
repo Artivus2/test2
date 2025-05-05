@@ -23,6 +23,8 @@ HWND labelX = NULL;
 HWND labelY = NULL;
 HWND labelMainX = NULL;
 HWND labelMainY = NULL;
+HWND labelPX = NULL;
+HWND labelPY = NULL;
 //HWND buttons[16];
 vector<HWND> buttons;
 int xPosAbout(0), yPosAbout(0), xPos(0), yPos(0);
@@ -32,6 +34,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Pingpong(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
 LRESULT CALLBACK    ButtonAll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
 WNDPROC OldButtonProc;
@@ -54,6 +57,28 @@ struct BoardData {
     //bool Enable = true;
 };
 
+bool isPingpong(false);
+bool is15(false);
+// bool isSeaBattle(false); todo
+
+//структура данных для передачи по winsocket pingpong
+struct PingPongData {
+    int x1, x2; //координаты доски игрока А и Б по горизонали
+    int y1[30] = {}, y2[30] = {}; //по вертикали
+    int circleX = 50;         // X-координата центра круга
+    int circleY = 50;         // Y-координата центра круга
+    int circleRadius = 20;      // Радиус круга
+    double angle = 0.0;         // Угол для кругового движения
+    int speedX = 4;             // Скорость движения (угловая)
+    int speedY = 4;
+    int centerX, centerY;      // Центр, относительно которого движется круг
+    int scoreA, scoreB; //счет игры
+    //todo положение сетки
+};
+
+PingPongData pingServer;
+PingPongData pingClient;
+
 BoardData boardOnServer;
 BoardData dataToReceive;
 int etalon[16] = {};
@@ -64,12 +89,13 @@ const int SERVER_PORT = 27000;
 const char* SERVER_ADDRESS = "192.168.0.201"; // Localhost
 const int BUFFER_SIZE = 512;
 bool serverStarted(false);
-bool isServer(false);
-bool* px = &isServer;
+//bool isServer(false);
+//bool* px = &isServer;
 
 bool startServer(HWND hWnd);
 bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult);
 bool startClient(HWND hWnd);
+bool runBall(HWND hDlg, WPARAM wParam, LPARAM lParam);
 int iResult, iResult1;
 SOCKET listenSocket, clientSocket1;
 
@@ -392,7 +418,12 @@ bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult) {
                     SetWindowText(hwndButtonById, setText(dataToReceive.board[i]));
 
                 }*/
-                iResult = send(currentClientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
+                if (is15) {
+                    iResult = send(currentClientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
+                }
+                else if (isPingpong) {
+                    iResult = send(currentClientSocket, (char*)&pingServer, sizeof(PingPongData), 0);
+                }
                 //MessageBoxW(hWnd, L"Старт игры", L"Уведомление", MB_OK);
                 
                 
@@ -489,7 +520,7 @@ bool startServer(HWND hWnd) {
         //closesocket(listenSocket);
         //WSACleanup();
         serverStarted = true;
-        isServer = true;
+        //isServer = true;
 
         return 0;
     
@@ -553,15 +584,28 @@ bool startClient(HWND hWnd) {
     }
 
     char buffer[BUFFER_SIZE];
-    iResult = recv(clientSocket1, (char*)&dataToReceive, sizeof(BoardData), 0);
+    
+    if (is15) {
+        iResult = recv(clientSocket1, (char*)&dataToReceive, sizeof(BoardData), 0);
+    }
+    else if (isPingpong) {
+        iResult = recv(clientSocket1, (char*)&pingClient, sizeof(PingPongData), 0);
+    }
+
     if (iResult > 0) {
         buffer[iResult] = '\0';
-        for (int i = 0; i < 16; i++) {
-            boardOnServer.board[i] = dataToReceive.board[i];
-            //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client", MB_OK);
-            
+        if (is15) {
+            for (int i = 0; i < 16; i++) {
+                boardOnServer.board[i] = dataToReceive.board[i];
+                //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client", MB_OK);
+
+            }
+            SetWindowTextA(labelMainY, "1111");
         }
-        SetWindowTextA(labelMainY, "1111");
+        else if (isPingpong) {
+            pingServer = pingClient;
+        }
+        
         //std::cout << "Получено от сервера: " << buffer << std::endl;
         
 
@@ -634,6 +678,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         switch (wmId)
         {
+        case IDM_PINGPONG: {
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, Pingpong);
+            break;
+        }
         case IDM_NEWGAME: {
             startServer(hWnd);
             
@@ -779,6 +827,122 @@ LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, 
 }
 
 
+//функция движение мяча по экрану
+bool runBall(HWND hDlg, WPARAM wParam, LPARAM lParam) {
+    return true;
+}
+
+
+//Обработчик сообщений для окна "О pingpong".
+INT_PTR CALLBACK Pingpong(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        RECT rect;
+        GetClientRect(hDlg, &rect);
+        pingServer.centerX = (rect.right - rect.left) / 2;
+        pingServer.centerY = (rect.bottom - rect.top) / 2;
+        SetTimer(hDlg, 1000, 20, NULL); // Интервал 20 мс
+        return TRUE;
+        //return (INT_PTR)TRUE;
+
+    case WM_TIMER: {
+        // Обновление координат круга
+        //pingServer.angle += pingServer.speed;
+        pingServer.circleX += pingServer.speedX; // Радиус орбиты = circleRadius * 2
+        pingServer.circleY += pingServer.speedY;
+
+        // Получение размеров окна
+        RECT rect;
+        GetClientRect(hDlg, &rect);
+
+        // Проверка границ (отражение от стенок)
+        if (pingServer.circleX - pingServer.circleRadius < 0) {
+            //pingServer.circleX = pingServer.circleRadius;
+            pingServer.speedX = -pingServer.speedX;
+        }
+        if (pingServer.circleX + pingServer.circleRadius > rect.right) {
+            //pingServer.circleX = rect.right - pingServer.circleRadius;
+            pingServer.speedX = -pingServer.speedX;
+        }
+
+        if (pingServer.circleY - pingServer.circleRadius < 0) {
+            //pingServer.circleY = pingServer.circleRadius;
+            pingServer.speedY = -pingServer.speedY;
+        }
+        if (pingServer.circleY + pingServer.circleRadius > rect.bottom) {
+            //pingServer.circleY = rect.bottom - pingServer.circleRadius;
+            pingServer.speedY = -pingServer.speedY;
+        }
+
+        // Перерисовка окна
+        InvalidateRect(hDlg, NULL, TRUE); // Помечаем окно как требующее перерисовки
+        return TRUE;
+    }
+    case WM_PAINT: {
+        // Рисование круга
+        SetWindowText(labelPX, setText(pingServer.circleX));
+        SetWindowText(labelPY, setText(pingServer.circleY));
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hDlg, &ps);
+
+        // Выбор кисти и пера
+        HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 0));  // Красная кисть
+        HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0)); // Черное перо
+
+        HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+        HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+
+        // Рисование круга
+        Ellipse(hdc, pingServer.circleX - pingServer.circleRadius, pingServer.circleY - pingServer.circleRadius,
+            pingServer.circleX + pingServer.circleRadius, pingServer.circleY + pingServer.circleRadius);
+
+        // Возвращаем старые кисть и перо
+        SelectObject(hdc, hOldBrush);
+        SelectObject(hdc, hOldPen);
+
+        // Удаляем созданные объекты GDI
+        DeleteObject(hBrush);
+        DeleteObject(hPen);
+
+        EndPaint(hDlg, &ps);
+
+        
+        return TRUE;
+    }
+    case WM_CREATE:
+    {
+        //runBall(hDlg, wParam, lParam);
+        labelPX = CreateWindowExW(
+            0, L"STATIC", L"",
+            WS_CHILD | WS_VISIBLE | SS_LEFT, // Стили окна
+            10, 10, 30, 25,             // Позиция и размеры
+            hDlg, (HMENU)IDC_MYLABEL_X1, NULL, NULL
+        );
+        labelPY = CreateWindowExW(
+            0, L"STATIC", L"",
+            WS_CHILD | WS_VISIBLE | SS_LEFT, // Стили окна
+            10, 35, 300, 25,             // Позиция и размеры
+            hDlg, (HMENU)IDC_MYLABEL_Y1, NULL, NULL
+        );
+    }
+    case WM_DESTROY:
+        KillTimer(hDlg, 1000);
+        PostQuitMessage(0);
+        return TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDCANCEL)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
  //Обработчик сообщений для окна "О программе".
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -787,14 +951,22 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     SetWindowSubclass(hwndButton, ButtonProc, 1, 0);
     switch (message) {
     case WM_DESTROY:
-        PostQuitMessage(0);
-        return 0;
+        EndDialog(hDlg, LOWORD(wParam));
+        //PostQuitMessage(0);
 
+        //return 0;
     
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+        
+        
 
     default:
         return DefWindowProc(hDlg, message, wParam, lParam);
     }
+
+
+    return (INT_PTR)FALSE;
 
 
 
@@ -815,7 +987,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
     //case WM_INITDIALOG:
     //    return (INT_PTR)TRUE;
-
+    //return (INT_PTR)FALSE;
 
     //case WM_MOUSEMOVE: {
 
