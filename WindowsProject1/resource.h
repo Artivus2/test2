@@ -3,6 +3,8 @@
 // Используется WindowsProject1.rc
 //
 #define IDC_MYICON                      2
+#define IDLEFT                          3
+#define IDRIGHT                         4
 #define IDD_WINDOWSPROJECT1_DIALOG      102
 #define IDS_APP_TITLE                   103
 #define IDD_ABOUTBOX                    103
@@ -11,9 +13,9 @@
 #define IDI_WINDOWSPROJECT1             107
 #define IDI_SMALL                       108
 #define IDC_WINDOWSPROJECT1             109
-#define IDM_PINGPONG                    130
 #define IDR_MAINFRAME                   128
 #define IDD_DIALOG1                     129
+#define IDM_PINGPONG                    130
 #define IDC_MYLABEL_X                   150
 #define IDC_MYLABEL_Y                   151
 #define IDC_MYLABEL_X1                  152

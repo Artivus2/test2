@@ -36,8 +36,9 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    Pingpong(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
+LRESULT CALLBACK    ButtonProcLeft(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
+LRESULT CALLBACK    ButtonProcRight(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
 LRESULT CALLBACK    ButtonAll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
-WNDPROC OldButtonProc;
 
 
 //drag&drop
@@ -64,7 +65,7 @@ bool is15(false);
 //структура данных для передачи по winsocket pingpong
 struct PingPongData {
     int x1, x2; //координаты доски игрока А и Б по горизонали
-    int y1[30] = {}, y2[30] = {}; //по вертикали
+    int y1, y2; //по вертикали
     int circleX = 50;         // X-координата центра круга
     int circleY = 50;         // Y-координата центра круга
     int circleRadius = 20;      // Радиус круга
@@ -73,6 +74,7 @@ struct PingPongData {
     int speedY = 4;
     int centerX, centerY;      // Центр, относительно которого движется круг
     int scoreA, scoreB; //счет игры
+    bool startingBall = false;
     //todo положение сетки
 };
 
@@ -774,6 +776,113 @@ LRESULT CALLBACK ButtonAll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, U
         return DefSubclassProc(hwnd, uMsg, wParam, lParam);
     }
 }
+LRESULT CALLBACK ButtonProcLeft(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData)
+{
+    HWND hwndParentOfButton = GetParent(hwnd);
+    
+    switch (uMsg) {
+    case WM_LBUTTONDOWN:
+        //MessageBoxW(hwnd, L"LEFT", L"server", MB_OK);
+        // Проверяем, нажата ли кнопка мыши над кнопкой
+        if (hwnd != NULL) {
+            POINT cursorPos;
+            GetCursorPos(&cursorPos);
+            ScreenToClient(hwnd, &cursorPos); // Преобразуем в координаты относительно кнопки
+
+            // Проверяем, находится ли курсор внутри области кнопки
+            RECT buttonRect;
+            GetClientRect(hwnd, &buttonRect);
+            if (PtInRect(&buttonRect, cursorPos)) {
+                isDragging = true;
+                dragOffset = cursorPos; // Запоминаем смещение
+                SetCapture(hwnd); // Захватываем мышь
+            }
+        }
+        return 0;
+
+    case WM_MOUSEMOVE:
+        if (isDragging) {
+            POINT cursorPos;
+            GetCursorPos(&cursorPos);
+            ScreenToClient(hwndParentOfButton, &cursorPos); // Преобразуем в координаты относительно родительского окна
+
+            // Устанавливаем новую позицию кнопки
+            SetWindowPos(hwnd, NULL,
+                cursorPos.x - dragOffset.x,
+                cursorPos.y - dragOffset.y,
+                0, 0, SWP_NOSIZE | SWP_NOZORDER);
+            pingServer.x1 = cursorPos.x - dragOffset.x + 20;
+            pingServer.y1 = cursorPos.y - dragOffset.y; // 20x80
+        }
+        return 0;
+
+    case WM_LBUTTONUP:
+        if (isDragging) {
+            isDragging = false;
+            ReleaseCapture(); // Освобождаем захват мыши
+        }
+        return 0;
+        return DefSubclassProc(hwnd, uMsg, wParam, lParam);   // Передаем сообщение дальше
+
+    default:
+        return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+    }
+}
+
+LRESULT CALLBACK ButtonProcRight(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData)
+{
+    HWND hwndParentOfButton = GetParent(hwnd);
+    switch (uMsg) {
+        
+    case WM_LBUTTONDOWN:
+        //MessageBoxW(hwnd, L"RIGHT", L"server", MB_OK);
+        // Проверяем, нажата ли кнопка мыши над кнопкой
+        if (hwnd != NULL) {
+            POINT cursorPos;
+            GetCursorPos(&cursorPos);
+            ScreenToClient(hwnd, &cursorPos); // Преобразуем в координаты относительно кнопки
+
+            // Проверяем, находится ли курсор внутри области кнопки
+            RECT buttonRect;
+            GetClientRect(hwnd, &buttonRect);
+            if (PtInRect(&buttonRect, cursorPos)) {
+                isDragging = true;
+                dragOffset = cursorPos; // Запоминаем смещение
+                SetCapture(hwnd); // Захватываем мышь
+            }
+        }
+        return 0;
+
+    case WM_MOUSEMOVE:
+        if (isDragging) {
+            POINT cursorPos;
+            GetCursorPos(&cursorPos);
+            ScreenToClient(hwndParentOfButton, &cursorPos); // Преобразуем в координаты относительно родительского окна
+
+            // Устанавливаем новую позицию кнопки
+            SetWindowPos(hwnd, NULL,
+                cursorPos.x - dragOffset.x,
+                cursorPos.y - dragOffset.y,
+                0, 0, SWP_NOSIZE | SWP_NOZORDER);
+            pingServer.x2 = cursorPos.x - dragOffset.x;
+            pingServer.y2 = cursorPos.y - dragOffset.y; // 20x80
+        }
+        return 0;
+
+    case WM_LBUTTONUP:
+        if (isDragging) {
+            isDragging = false;
+            ReleaseCapture(); // Освобождаем захват мыши
+        }
+        return 0;
+        return DefSubclassProc(hwnd, uMsg, wParam, lParam);   // Передаем сообщение дальше
+
+    default:
+        return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+    }
+}
+
+
 
 
  //Обработчик сообщений для окна "О кнопке".
@@ -782,6 +891,7 @@ LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, 
     HWND hwndParentOfButton = GetParent(hwnd);
     switch(uMsg) {
         case WM_LBUTTONDOWN:
+        
         // Проверяем, нажата ли кнопка мыши над кнопкой
         if (hwnd != NULL) {
             POINT cursorPos;
@@ -829,7 +939,17 @@ LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 //функция движение мяча по экрану
 bool runBall(HWND hDlg, WPARAM wParam, LPARAM lParam) {
-    return true;
+    if (pingServer.startingBall) 
+    { 
+        SetTimer(hDlg, 1000, 20, NULL);
+        
+        return true; 
+    }
+    else {
+        KillTimer(hDlg, 1000);
+        return false;
+    }
+    
 }
 
 
@@ -837,16 +957,21 @@ bool runBall(HWND hDlg, WPARAM wParam, LPARAM lParam) {
 INT_PTR CALLBACK Pingpong(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
+    HWND ButtonLeft = GetDlgItem(hDlg, IDLEFT);
+    SetWindowSubclass(ButtonLeft, ButtonProcLeft, 1, 0);
+    HWND ButtonRight = GetDlgItem(hDlg, IDRIGHT);
+    SetWindowSubclass(ButtonRight, ButtonProcRight, 1, 0);
     switch (message)
     {
+    
     case WM_INITDIALOG:
         RECT rect;
         GetClientRect(hDlg, &rect);
         pingServer.centerX = (rect.right - rect.left) / 2;
         pingServer.centerY = (rect.bottom - rect.top) / 2;
-        SetTimer(hDlg, 1000, 20, NULL); // Интервал 20 мс
-        return TRUE;
-        //return (INT_PTR)TRUE;
+        
+        //return TRUE;
+        return (INT_PTR)TRUE;
 
     case WM_TIMER: {
         // Обновление координат круга
@@ -863,6 +988,18 @@ INT_PTR CALLBACK Pingpong(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
             //pingServer.circleX = pingServer.circleRadius;
             pingServer.speedX = -pingServer.speedX;
         }
+
+        if (pingServer.circleX <= pingServer.x1 && pingServer.circleY >= pingServer.y1 && pingServer.circleY <= pingServer.y1 + 80) {
+            pingServer.speedX = -pingServer.speedX;
+        }
+
+        if (pingServer.circleX >= pingServer.x2 && pingServer.circleY >= pingServer.y2 && pingServer.circleY <= pingServer.y2 + 80) {
+            pingServer.speedX = -pingServer.speedX;
+        }
+
+
+        
+
         if (pingServer.circleX + pingServer.circleRadius > rect.right) {
             //pingServer.circleX = rect.right - pingServer.circleRadius;
             pingServer.speedX = -pingServer.speedX;
@@ -914,19 +1051,20 @@ INT_PTR CALLBACK Pingpong(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     }
     case WM_CREATE:
     {
-        //runBall(hDlg, wParam, lParam);
-        labelPX = CreateWindowExW(
-            0, L"STATIC", L"",
-            WS_CHILD | WS_VISIBLE | SS_LEFT, // Стили окна
-            10, 10, 30, 25,             // Позиция и размеры
-            hDlg, (HMENU)IDC_MYLABEL_X1, NULL, NULL
-        );
-        labelPY = CreateWindowExW(
-            0, L"STATIC", L"",
-            WS_CHILD | WS_VISIBLE | SS_LEFT, // Стили окна
-            10, 35, 300, 25,             // Позиция и размеры
-            hDlg, (HMENU)IDC_MYLABEL_Y1, NULL, NULL
-        );
+        
+        
+        //labelPX = CreateWindowExW(
+        //    0, L"STATIC", L"1111",
+        //    WS_CHILD | WS_VISIBLE | SS_LEFT, // Стили окна
+        //    10, 10, 30, 25,             // Позиция и размеры
+        //    hDlg, (HMENU)IDC_MYLABEL_X1, NULL, NULL
+        //);
+        //labelPY = CreateWindowExW(
+        //    0, L"STATIC", L"1111",
+        //    WS_CHILD | WS_VISIBLE | SS_LEFT, // Стили окна
+        //    10, 35, 300, 25,             // Позиция и размеры
+        //    hDlg, (HMENU)IDC_MYLABEL_Y1, NULL, NULL
+        //);
     }
     case WM_DESTROY:
         KillTimer(hDlg, 1000);
@@ -934,6 +1072,17 @@ INT_PTR CALLBACK Pingpong(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         return TRUE;
 
     case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK) {
+            //MessageBoxW(hDlg, L"Вы нажали кнопку!", L"start", MB_OK);
+            pingServer.startingBall = !pingServer.startingBall;
+            runBall(hDlg, wParam, lParam);
+            // Интервал 20 мс
+        }
+
+        /*if (LOWORD(wParam) == IDLEFT) {
+            
+            }*/
+
         if (LOWORD(wParam) == IDCANCEL)
         {
             EndDialog(hDlg, LOWORD(wParam));

@@ -1,4 +1,4 @@
-﻿Сборка начата 05.05.2025 20:44:07.
+﻿Сборка начата 07.05.2025 19:53:06.
 Уровень детализации журнала: Normal.     1>Проект "C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.vcxproj" в узле 2 (целевые объекты Build).
      1>PrepareForBuild:
          Структурированный вывод включен. Форматирование диагностики компилятора будет отражать иерархию ошибок. Подробнее см. https://aka.ms/cpp/structured-output.
@@ -8,11 +8,11 @@
        ClCompile:
          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\bin\HostX64\x64\CL.exe /c /ZI /JMC /nologo /W3 /WX- /diagnostics:column /sdl /Od /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /permissive- /Fo"WindowsProject1\x64\Debug\\" /Fd"WindowsProject1\x64\Debug\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:prompt WindowsProject1.cpp
          WindowsProject1.cpp
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(125,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(633,13): warning C4101: textXY: неиспользованная локальная переменная
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(752,11): warning C4101: cursorPos: неиспользованная локальная переменная
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(459,1): warning C4715: listenServer: значение возвращается не при всех путях выполнения
-     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(625,1): warning C4715: startClient: значение возвращается не при всех путях выполнения
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(127,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(635,13): warning C4101: textXY: неиспользованная локальная переменная
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(754,11): warning C4101: cursorPos: неиспользованная локальная переменная
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(461,1): warning C4715: listenServer: значение возвращается не при всех путях выполнения
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(627,1): warning C4715: startClient: значение возвращается не при всех путях выполнения
        ResourceCompile:
          Для всех выходных данных обновления не требуется.
        Link:
@@ -28,13 +28,13 @@
 
        "C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.vcxproj" (целевой объект Build ) (1) ->
        (Целевой объект ClCompile) -> 
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(125,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(633,13): warning C4101: textXY: неиспользованная локальная переменная
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(752,11): warning C4101: cursorPos: неиспользованная локальная переменная
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(459,1): warning C4715: listenServer: значение возвращается не при всех путях выполнения
-         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(625,1): warning C4715: startClient: значение возвращается не при всех путях выполнения
+         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(127,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(635,13): warning C4101: textXY: неиспользованная локальная переменная
+         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(754,11): warning C4101: cursorPos: неиспользованная локальная переменная
+         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(461,1): warning C4715: listenServer: значение возвращается не при всех путях выполнения
+         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(627,1): warning C4715: startClient: значение возвращается не при всех путях выполнения
 
     Предупреждений: 5
     Ошибок: 0
 
-Прошло времени 00:00:01.32
+Прошло времени 00:00:01.36
