@@ -46,12 +46,6 @@ bool isDragging = false; // Флаг, указывающий, что проис�
 POINT dragOffset;       // Смещение мыши относительно верхнего левого угла кнопки
 
 
-
-/// <summary>
-/// наши функции
-/// </summary>
-/// <param name="hwnd"></param>
-
 int ServerBoard[16];
 struct BoardData {
     int board[16] = {};
@@ -66,15 +60,17 @@ bool is15(false);
 struct PingPongData {
     int x1, x2; //координаты доски игрока А и Б по горизонали
     int y1, y2; //по вертикали
-    int circleX = 50;         // X-координата центра круга
-    int circleY = 50;         // Y-координата центра круга
+    int circleX = 500;         // X-координата центра круга
+    int circleY = 200;         // Y-координата центра круга
     int circleRadius = 20;      // Радиус круга
-    double angle = 0.0;         // Угол для кругового движения
+    //double angle = 0.0;         // Угол для кругового движения
     int speedX = 4;             // Скорость движения (угловая)
     int speedY = 4;
     int centerX, centerY;      // Центр, относительно которого движется круг
     int scoreA, scoreB; //счет игры
     bool startingBall = false;
+    bool turnx1 = false;
+    bool turnx2 = true;
     //todo положение сетки
 };
 
@@ -94,19 +90,20 @@ bool serverStarted(false);
 //bool isServer(false);
 //bool* px = &isServer;
 
+SOCKET listenSocket, clientSocket1;
 bool startServer(HWND hWnd);
-bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult);
+bool listenServer(HWND hWnd);
 bool startClient(HWND hWnd);
 bool runBall(HWND hDlg, WPARAM wParam, LPARAM lParam);
 int iResult, iResult1;
-SOCKET listenSocket, clientSocket1;
+
 
 
 void HandleWinsockError(const std::string& operation, HWND hwnd) {
     DWORD error = WSAGetLastError();
     if (error != 0) {
 
-        MessageBoxW(hwnd, L"Ошибка создания сокета", L"Ошибка", MB_OK);
+        MessageBoxExW(hwnd, (LPCWSTR)&operation, L"Ошибка", MB_OK);
         //std::cerr << "Winsock error during " << operation << ": " << error << std::endl;
         
         // Optionally, format the error message using FormatMessage
@@ -307,7 +304,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             DispatchMessage(&msg);
             if (serverStarted) {
                 //startServer(msg.hwnd);
-                listenServer(msg.hwnd, listenSocket, iResult);
+                listenServer(msg.hwnd);
             }
         }
 
@@ -374,7 +371,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult) {
+bool listenServer(HWND hWnd) {
     std::vector<SOCKET> clientSockets; // Keep track of connected clients.
     u_long iMode = 1;
     //while (true) {
@@ -391,6 +388,7 @@ bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult) {
             // Set new client socket to non-blocking mode as well
             iResult = ioctlsocket(clientSocket, FIONBIO, &iMode);
             if (iResult == SOCKET_ERROR) {
+                
                 HandleWinsockError("ioctlsocket to set non-blocking mode for client", hWnd);
                 closesocket(clientSocket);
                 // Consider removing the client socket from the vector here if needed.
@@ -398,21 +396,27 @@ bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult) {
         }
         else {
             if (WSAGetLastError() != WSAEWOULDBLOCK) {
+                
                 HandleWinsockError("accept (non-blocking)", hWnd); // Log the error, but don't exit.
             }
         }
 
         // Обработка данных от клиентов (неблокирующая)
+        
+        
         for (auto it = clientSockets.begin(); it != clientSockets.end(); ) {
             SOCKET currentClientSocket = *it;
             char buffer[BUFFER_SIZE];
-            iResult = recv(currentClientSocket, buffer, BUFFER_SIZE - 1, 0);
-
+            //iResult = recv(currentClientSocket, buffer, BUFFER_SIZE - 1, 0);
+            iResult = recv(clientSocket1, buffer, sizeof(BoardData), 0);
+            
             if (iResult > 0) {
+                SetWindowTextA(labelMainY, "START");
                 buffer[iResult] = '\0'; // Null-terminate the received data
                 //std::cout << "Получено от клиента: " << buffer << std::endl;
                 // todo board[16] >> buffer;
-                SetWindowTextA(labelMainY, buffer);
+                
+                
                 // Отправляем данные обратно клиенту (эхо-сервер)
 
                 /*for (int i = 0; i <= 16; i++) {
@@ -425,6 +429,7 @@ bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult) {
                 }
                 else if (isPingpong) {
                     iResult = send(currentClientSocket, (char*)&pingServer, sizeof(PingPongData), 0);
+                    pingServer.startingBall = true;
                 }
                 //MessageBoxW(hWnd, L"Старт игры", L"Уведомление", MB_OK);
                 
@@ -438,7 +443,7 @@ bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult) {
             }
             else if (iResult == 0) {
                 // Соединение закрыто клиентом
-
+                SetWindowTextA(labelMainY, "result0");
                 //std::cout << "Соединение с клиентом закрыто" << std::endl;
                 closesocket(currentClientSocket);
                 it = clientSockets.erase(it); // Удаляем сокет из вектора
@@ -451,6 +456,7 @@ bool listenServer(HWND hWnd, SOCKET listenSocket, int iResult) {
                     it = clientSockets.erase(it);
                     continue;
                 }
+                SetWindowTextA(labelMainY, "erroorrrrr");
             }
             ++it; // Advance the iterator only if the socket wasn't erased.
         }
@@ -529,9 +535,46 @@ bool startServer(HWND hWnd) {
 
 }
 
-bool sendMessageToServer(SOCKET clientSocket1, int sendValue) {
-    int result = send(clientSocket1, "-1", 2, 0);
-    return result;
+bool sendMessageToServer(HWND hWnd) {
+    if (is15) {
+        MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"is15", MB_OK);
+        iResult1 = send(clientSocket1, (char*)&boardOnServer, sizeof(BoardData), 0);
+    }
+    else if (isPingpong) {
+        //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"ping", MB_OK);
+        iResult1 = send(clientSocket1, (char*)&pingClient, sizeof(PingPongData), 0);
+    }
+    
+    if (iResult1 == SOCKET_ERROR) {
+        HandleWinsockError("send", hWnd);
+        return 1;
+    }
+    
+    char buffer[BUFFER_SIZE];
+
+    if (is15) {
+        MessageBoxW(hWnd, setText(sizeof(iResult)), L"15RECEV", MB_OK);
+        iResult = recv(clientSocket1, (char*)&dataToReceive, sizeof(BoardData), 0);
+    }
+    else if (isPingpong) {
+        iResult = recv(clientSocket1, (char*)&pingClient, sizeof(PingPongData), 0);
+    }
+
+    if (iResult > 0) {
+        buffer[iResult] = '\0';
+        if (is15) {
+            for (int i = 0; i < 16; i++) {
+                boardOnServer.board[i] = dataToReceive.board[i];
+                //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client", MB_OK);
+
+            }
+            SetWindowTextA(labelMainY, "1111");
+        }
+        else if (isPingpong) {
+            pingServer = pingClient;
+        }
+    }
+    return true;
 }
 
 
@@ -541,7 +584,7 @@ bool startClient(HWND hWnd) {
             //клиент
     WSADATA wsaData;
     
-    int iResult1;
+    //int iResult1;
     
     
 
@@ -553,7 +596,7 @@ bool startClient(HWND hWnd) {
     }
 
     // Создание сокета клиента
-    SOCKET clientSocket1 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    clientSocket1 = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (clientSocket1 == INVALID_SOCKET) {
         HandleWinsockError("socket creation", hWnd);
         WSACleanup();
@@ -574,11 +617,13 @@ bool startClient(HWND hWnd) {
         WSACleanup();
         return 1;
     }
-
+    MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"подключились", MB_OK);
     //подключились
     //SetWindowTextA(labelMainY, "Подключились");
     //char* prt =  (LPCWSTR)sendX;
-    iResult1 = send(clientSocket1, "1", 2, 0);
+    //
+
+    iResult1 = send(clientSocket1, (char*)&dataToReceive, sizeof(BoardData), 0);
     //iResult = sendMessageToServer(clientSocket1, sendX);
     if (iResult1 == SOCKET_ERROR) {
         HandleWinsockError("send", hWnd);
@@ -597,12 +642,11 @@ bool startClient(HWND hWnd) {
     if (iResult > 0) {
         buffer[iResult] = '\0';
         if (is15) {
-            for (int i = 0; i < 16; i++) {
-                boardOnServer.board[i] = dataToReceive.board[i];
+            //for (int i = 0; i < 16; i++) {
+                boardOnServer = dataToReceive;
                 //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client", MB_OK);
-
-            }
-            SetWindowTextA(labelMainY, "1111");
+                //}
+        SetWindowTextA(labelMainY, "1111");
         }
         else if (isPingpong) {
             pingServer = pingClient;
@@ -663,12 +707,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetCursorPos(&cursorPos); // Получаем позицию курсора в экранных координатах
             ScreenToClient(hButton, &cursorPos); // Преобразуем координаты курсора в координаты относительно кнопки
             
-            for (int i = 0; i <= 16; i++) {
+            /*for (int i = 0; i <= 15; i++) {
                 HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
-                SetWindowText(hwndButtonById, setText(dataToReceive.board[i]));
+                SetWindowText(hwndButtonById, setText(boardOnServer.board[i]));
 
-            }
-            iResult1 = send(clientSocket1, (char*)&boardOnServer, sizeof(BoardData), 0);
+            }*/
+            //iResult1 = send(clientSocket1, (char*)&boardOnServer, sizeof(BoardData), 0);
+            //sendMessageToServer(hWnd);
             
 
         }
@@ -693,10 +738,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         break;
 
         case IDM_CONGAME: {
+            
+            is15 = true;
             startClient(hWnd);
-            /*for (int i = 0; i <= 16; i++) {
-                HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i*4);
-                SetWindowText(hwndButtonById, setText(dataToReceive.board[i]));
+            //sendMessageToServer(hWnd);
+            
+            /*if (is15) {
+                for (int i = 0; i <= 16; i++) {
+                    HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
+                    SetWindowText(hwndButtonById, setText(dataToReceive.board[i]));
+                }
             }*/
             
 
@@ -755,7 +806,7 @@ LRESULT CALLBACK ButtonAll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, U
     xPos = LOWORD(lParam);  // Получаем X-координату
     yPos = HIWORD(lParam);  // Получаем Y-координату
     int buttonId = GetDlgCtrlID(hwnd);
-
+    
     switch (uMsg)
     {
         case WM_MOUSEMOVE: {
@@ -942,7 +993,8 @@ bool runBall(HWND hDlg, WPARAM wParam, LPARAM lParam) {
     if (pingServer.startingBall) 
     { 
         SetTimer(hDlg, 1000, 20, NULL);
-        
+        isPingpong = true;
+        is15 = false;
         return true; 
     }
     else {
@@ -975,8 +1027,8 @@ INT_PTR CALLBACK Pingpong(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_TIMER: {
         // Обновление координат круга
-        //pingServer.angle += pingServer.speed;
-        pingServer.circleX += pingServer.speedX; // Радиус орбиты = circleRadius * 2
+        
+        pingServer.circleX += pingServer.speedX; 
         pingServer.circleY += pingServer.speedY;
 
         // Получение размеров окна
@@ -984,44 +1036,63 @@ INT_PTR CALLBACK Pingpong(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         GetClientRect(hDlg, &rect);
 
         // Проверка границ (отражение от стенок)
-        if (pingServer.circleX - pingServer.circleRadius < 0) {
-            //pingServer.circleX = pingServer.circleRadius;
-            pingServer.speedX = -pingServer.speedX;
-        }
-
-        if (pingServer.circleX <= pingServer.x1 && pingServer.circleY >= pingServer.y1 && pingServer.circleY <= pingServer.y1 + 80) {
-            pingServer.speedX = -pingServer.speedX;
-        }
-
-        if (pingServer.circleX >= pingServer.x2 && pingServer.circleY >= pingServer.y2 && pingServer.circleY <= pingServer.y2 + 80) {
-            pingServer.speedX = -pingServer.speedX;
-        }
-
-
-        
+        //if (pingServer.circleX - pingServer.circleRadius < 0) {
+        //    //pingServer.circleX = pingServer.circleRadius;
+        //    pingServer.speedX = -pingServer.speedX;
+        //}
 
         if (pingServer.circleX + pingServer.circleRadius > rect.right) {
             //pingServer.circleX = rect.right - pingServer.circleRadius;
             pingServer.speedX = -pingServer.speedX;
         }
 
-        if (pingServer.circleY - pingServer.circleRadius < 0) {
-            //pingServer.circleY = pingServer.circleRadius;
-            pingServer.speedY = -pingServer.speedY;
+        if (pingServer.circleX - pingServer.circleRadius < rect.left) {
+            //pingServer.circleX = rect.right - pingServer.circleRadius;
+            pingServer.speedX = -pingServer.speedX;
         }
+
+        //if (pingServer.circleY - pingServer.circleRadius < 0) {
+        //    //pingServer.circleY = pingServer.circleRadius;
+        //    pingServer.speedY = -pingServer.speedY;
+        //}
+
         if (pingServer.circleY + pingServer.circleRadius > rect.bottom) {
             //pingServer.circleY = rect.bottom - pingServer.circleRadius;
             pingServer.speedY = -pingServer.speedY;
         }
 
+        if (pingServer.circleY - pingServer.circleRadius < rect.top) {
+            //pingServer.circleY = rect.bottom - pingServer.circleRadius;
+            pingServer.speedY = -pingServer.speedY;
+        }
+
+        if (pingServer.turnx1 == true && pingServer.turnx2 == false && pingServer.circleX <= pingServer.x1 + 20 && pingServer.circleY >= pingServer.y1 && pingServer.circleY <= pingServer.y1 + 80) {
+            pingServer.speedX = -pingServer.speedX;
+            pingServer.turnx1 = false;
+            pingServer.turnx2 = true;
+
+        }
+
+        if (pingServer.turnx1 == false && pingServer.turnx2 == true && pingServer.circleX >= pingServer.x2 - 20 && pingServer.circleY >= pingServer.y2 && pingServer.circleY <= pingServer.y2 + 80) {
+            pingServer.speedX = -pingServer.speedX;
+            pingServer.turnx1 = true;
+            pingServer.turnx2 = false;
+        }
+
         // Перерисовка окна
         InvalidateRect(hDlg, NULL, TRUE); // Помечаем окно как требующее перерисовки
+
+        // СИНХРОНИЗАЦИЯ ДАННЫХ клиента и сервера
+        pingClient = pingServer;
+
+        sendMessageToServer(hDlg);
+
         return TRUE;
     }
     case WM_PAINT: {
         // Рисование круга
-        SetWindowText(labelPX, setText(pingServer.circleX));
-        SetWindowText(labelPY, setText(pingServer.circleY));
+        /*SetWindowText(labelPX, setText(pingServer.circleX));
+        SetWindowText(labelPY, setText(pingServer.circleY));*/
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hDlg, &ps);
 
