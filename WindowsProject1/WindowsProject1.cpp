@@ -77,8 +77,8 @@ struct PingPongData {
 PingPongData pingServer;
 PingPongData pingClient;
 
-BoardData boardOnServer;
-BoardData dataToReceive;
+BoardData boardOnServer; //на сервере
+BoardData dataToReceive; //на клиент
 int etalon[16] = {};
 wchar_t buffer[256];
 int sendX(-1);
@@ -90,20 +90,38 @@ bool serverStarted(false);
 //bool isServer(false);
 //bool* px = &isServer;
 
-SOCKET listenSocket, clientSocket, clientSocket1;
+SOCKET listenSocket, clientSocket, clientSocket1; //clientsocket1 это клиент
+
 bool startServer(HWND hWnd);
 bool listenServer(HWND hWnd);
+bool listenClient(HWND hWnd);
 bool startClient(HWND hWnd);
 bool runBall(HWND hDlg, WPARAM wParam, LPARAM lParam);
 int iResult, iResult1;
 
 
+LPCWSTR setText(int a) {
 
-void HandleWinsockError(const std::string& operation, HWND hwnd) {
+    wsprintfW(buffer, L"%d", a);
+    if (a == -1) {
+        wsprintfW(buffer, L"-", a);
+    }
+    if (a == 0) {
+        wsprintfW(buffer, L" ", a);
+    }
+    return ::buffer;
+
+}
+
+
+void HandleWinsockError(const char* operation, HWND hwnd) {
     DWORD error = WSAGetLastError();
     if (error != 0) {
-
-        MessageBoxW(hwnd, L"1", L"Ошибка", MB_OK);
+        size_t operationLength = strlen(operation);
+        std::wstring wOperation(operationLength, L' ');
+        //mbstowcs(&wOperation[0], operation, operationLength);
+        //MessageBoxW(hwnd, wsprintfW(buffer, L"%d", operation), L"Ошибка", MB_OK);
+        MessageBoxW(hwnd, setText((int)operationLength), L"Server", MB_OK);
         //std::cerr << "Winsock error during " << operation << ": " << error << std::endl;
         
         // Optionally, format the error message using FormatMessage
@@ -133,24 +151,13 @@ int randomfill() {
 		swap(&boardOnServer.board[rand() % 15], &boardOnServer.board[rand() % 15]);
 		k += 1;
 	}
-
+    dataToReceive = boardOnServer;
     
 	
 	return 0;
 }
 
-LPCWSTR setText(int a) {
-    
-    wsprintfW(buffer, L"%d", a);
-    if (a == -1) {
-        wsprintfW(buffer, L"-", a);
-    }
-    if (a==0) {
-    wsprintfW(buffer, L" ", a);
-    }
-    return ::buffer;
-    
-     }
+
 
 void printTable(HWND hwnd) {
     
@@ -255,6 +262,7 @@ bool manualswap(HWND hwnd, int x) {
     		temp = boardOnServer.board[indexCH];
             boardOnServer.board[indexCH] = boardOnServer.board[indexO];
             boardOnServer.board[indexO] = temp;
+            dataToReceive = boardOnServer;
             return true;
         //SetWindowTextW(hButton, setText(board[indexO]));
         //if (hButtonNull) {
@@ -303,9 +311,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             TranslateMessage(&msg);
             DispatchMessage(&msg);
             if (serverStarted) {
-                //startServer(msg.hwnd);
                 listenServer(msg.hwnd);
+                
             }
+            listenClient(msg.hwnd);
+            
+            
         }
 
 
@@ -371,6 +382,53 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
+bool listenClient(HWND hWnd) {
+    
+    int iResultOtServer = recv(clientSocket1, (char*)&boardOnServer, sizeof(BoardData), 0);
+    /*if (!serverStarted) {
+        MessageBoxW(hWnd, setText(buffer[0]), L"client", MB_OK);
+    }*/
+    
+    
+    /*for (int i = 0; i <= 16; i++) {
+        HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
+        SetWindowText(hwndButtonById, setText(boardOnServer.board[i]));
+
+    }*/
+    if (iResultOtServer > 0) {
+        SetWindowTextW(labelMainY, setText(boardOnServer.board[1]));
+        
+        /*for (int i = 0; i < 16; i++) {
+            HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
+            SetWindowText(hwndButtonById, setText(boardOnServer.board[i]));
+
+        }*/
+
+    }
+    else if (iResultOtServer == 0) {
+        // Соединение закрыто клиентом
+        SetWindowTextA(labelMainY, "result0");
+        //std::cout << "Соединение с клиентом закрыто" << std::endl;
+        
+    }
+    else {
+        if (WSAGetLastError() != WSAEWOULDBLOCK) {
+            HandleWinsockError("recv", hWnd);
+            SetWindowTextA(labelMainY, "ошибка сокета");
+            //closesocket(currentClientSocket);
+        }
+        SetWindowTextW(labelMainY, setText(iResultOtServer));
+    }
+
+        
+    Sleep(10);
+    //SetWindowTextA(labelMainY, "клиент активен");
+    //MessageBoxW(hWnd, L"цикл клиента", L"client", MB_OK);
+
+    
+    return true;
+}
+
 bool listenServer(HWND hWnd) {
     std::vector<SOCKET> clientSockets; // Keep track of connected clients.
     u_long iMode = 1;
@@ -384,13 +442,14 @@ bool listenServer(HWND hWnd) {
             //std::cout << "Принято новое соединение" << std::endl;
             //MessageBoxW(hWnd, L"Принято новое соединение", L"server!", MB_OK);
             clientSockets.push_back(clientSocket);
+            //MessageBoxW(hWnd, L"ПРИНЯТ клиент", L"server", MB_OK);
 
             // Set new client socket to non-blocking mode as well
             iResult = ioctlsocket(clientSocket, FIONBIO, &iMode);
             if (iResult == SOCKET_ERROR) {
                 
                 HandleWinsockError("ioctlsocket to set non-blocking mode for client", hWnd);
-                closesocket(clientSocket);
+                //closesocket(clientSocket);
                 // Consider removing the client socket from the vector here if needed.
             }
         }
@@ -406,29 +465,37 @@ bool listenServer(HWND hWnd) {
         
         for (auto it = clientSockets.begin(); it != clientSockets.end(); ) {
             SOCKET currentClientSocket = *it;
-            char buffer[BUFFER_SIZE];
+            //char buffer[BUFFER_SIZE];
             //iResult = recv(currentClientSocket, buffer, BUFFER_SIZE - 1, 0);
-            iResult = recv(currentClientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
+            iResult = recv(currentClientSocket, (char*)&dataToReceive, sizeof(BoardData), 0);
             
             if (iResult > 0) {
-                MessageBoxW(hWnd, setText(boardOnServer.board[0]), L"server", MB_OK);
+                dataToReceive = boardOnServer;
+                //MessageBoxW(hWnd, setText(boardOnServer.board[0]), L"server", MB_OK);
                 SetWindowTextW(labelMainY, setText(boardOnServer.board[0]));
-                buffer[iResult] = '\0'; // Null-terminate the received data
+                //buffer[iResult] = '\0'; // Null-terminate the received data
                 //std::cout << "Получено от клиента: " << buffer << std::endl;
                 // todo board[16] >> buffer;
                 
                 
                 // Отправляем данные обратно клиенту (эхо-сервер)
 
-                for (int i = 0; i <= 16; i++) {
-                    HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
-                    SetWindowText(hwndButtonById, setText(boardOnServer.board[i]));
-
-                }
+               
                 if (is15) {
-                    SetWindowTextA(labelMainY, "отправили");
-                    //MessageBoxW(hWnd, L"отправили", L"server", MB_OK);
-                    iResult = send(currentClientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
+                    // перерисовал сервер
+                    
+                    dataToReceive = boardOnServer;
+                    int iResult2 = send(currentClientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
+                    
+                    if (iResult2 > 0) {
+                        MessageBoxW(hWnd, setText(boardOnServer.board[1]), L"server", MB_OK);
+                    }
+                    
+                    /*for (int i = 0; i <= 16; i++) {
+                        HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
+                        SetWindowText(hwndButtonById, setText(boardOnServer.board[i]));
+
+                    }*/
                 }
                 else if (isPingpong) {
                     iResult = send(currentClientSocket, (char*)&pingServer, sizeof(PingPongData), 0);
@@ -448,16 +515,16 @@ bool listenServer(HWND hWnd) {
                 // Соединение закрыто клиентом
                 SetWindowTextA(labelMainY, "result0");
                 //std::cout << "Соединение с клиентом закрыто" << std::endl;
-                closesocket(currentClientSocket);
-                it = clientSockets.erase(it); // Удаляем сокет из вектора
-                continue; // Skip to the next client.
+                //closesocket(currentClientSocket);
+                //it = clientSockets.erase(it); // Удаляем сокет из вектора
+                //continue; // Skip to the next client.
             }
             else {
                 if (WSAGetLastError() != WSAEWOULDBLOCK) {
                     HandleWinsockError("recv", hWnd);
-                    closesocket(currentClientSocket);
-                    it = clientSockets.erase(it);
-                    continue;
+                    //closesocket(currentClientSocket);
+                    //it = clientSockets.erase(it);
+                    //continue;
                 }
                 SetWindowTextA(labelMainY, "erroorrrrr");
             }
@@ -466,7 +533,9 @@ bool listenServer(HWND hWnd) {
 
         // Небольшая задержка (для уменьшения нагрузки на процессор)
         Sleep(10);
-    
+        //MessageBoxW(hWnd, L"Слушает", L"server", MB_OK);
+        SetWindowTextA(labelMainY, "сервер слушает");
+        return 0;
 }
 
 bool startServer(HWND hWnd) {
@@ -476,7 +545,7 @@ bool startServer(HWND hWnd) {
         
         
         // Инициализация Winsock
-        iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        iResult = WSAStartup(MAKEWORD(2, 2), &wsaData); //серверный 
         if (iResult != 0) {
             //std::cerr << "WSAStartup failed: " << iResult << std::endl;
             MessageBoxW(hWnd, L"WSAStartup failed", L"server!", MB_OK);
@@ -525,7 +594,7 @@ bool startServer(HWND hWnd) {
         }
 
 
-        MessageBoxW(hWnd, L"Socket готов к приему подключений", L"server!", MB_OK);
+        //MessageBoxW(hWnd, L"Socket готов к приему подключений", L"server!", MB_OK);
         //listenServer(hWnd, listenSocket, iResult);
         // Завершение работы Winsock
         /*closesocket(listenSocket);
@@ -538,45 +607,74 @@ bool startServer(HWND hWnd) {
 
 }
 
-bool sendMessageToServer(HWND hWnd) {
+bool sendMessageToClient(HWND hWnd) {
+    iResult1 = send(clientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
+    
+    
     if (is15) {
-        MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client", MB_OK);
-        iResult1 = send(clientSocket1, (char*)&boardOnServer, sizeof(BoardData), 0);
+        MessageBoxW(hWnd, setText(sizeof(BoardData)), L"server", MB_OK);
+        //MessageBoxW(hWnd, setText(sizeof(iResult)), L"client", MB_OK);
+        iResult = recv(clientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
+        for (int i = 0; i <= 16; i++) {
+            HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
+            SetWindowText(hwndButtonById, setText(boardOnServer.board[i]));
+
+        }
+
+    }
+    return true;
+}
+
+bool sendMessageToServer(HWND hWnd) {
+    
+    int iResultToServer;
+    if (is15) {
+        //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client", MB_OK);
+        iResultToServer = send(clientSocket1, (char*)&boardOnServer, sizeof(BoardData), 0);
     }
     else if (isPingpong) {
         //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"ping", MB_OK);
-        iResult1 = send(clientSocket1, (char*)&pingServer, sizeof(PingPongData), 0);
+        iResultToServer = send(clientSocket1, (char*)&pingServer, sizeof(PingPongData), 0);
     }
     
-    if (iResult1 == SOCKET_ERROR) {
+    if (iResultToServer == SOCKET_ERROR) {
         HandleWinsockError("send", hWnd);
+        SetWindowTextA(labelMainY, "erroorrrrr-client");
         return 1;
     }
     
-    char buffer[BUFFER_SIZE];
+    //char buffer[BUFFER_SIZE];
 
-    if (is15) {
+    /*if (is15) {
         MessageBoxW(hWnd, setText(sizeof(iResult)), L"client", MB_OK);
         iResult = recv(clientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
+
+        for (int i = 0; i <= 16; i++) {
+            HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
+            SetWindowText(hwndButtonById, setText(dataToReceive.board[i]));
+
+        }
     }
     else if (isPingpong) {
         iResult = recv(clientSocket, (char*)&pingClient, sizeof(PingPongData), 0);
-    }
+    }*/
 
-    if (iResult > 0) {
-        buffer[iResult] = '\0';
-        if (is15) {
-            //for (int i = 0; i < 16; i++) {
-            boardOnServer = dataToReceive;
-                MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client_ответ", MB_OK);
+    //if (iResult > 0) {
+    //    //buffer[iResult] = '\0';
+    //    if (is15) {
+    //        //for (int i = 0; i < 16; i++) {
+    //        //boardOnServer = dataToReceive;
+    //        //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client_ответ", MB_OK);
 
-            //}
-            SetWindowTextA(labelMainY, "1111");
-        }
-        else if (isPingpong) {
-            pingServer = pingClient;
-        }
-    }
+    //        //}
+    //        SetWindowTextA(labelMainY, "получил данные");
+    //    }
+    //    else if (isPingpong) {
+    //        pingServer = pingClient;
+    //    }
+    //}
+    /*closesocket(listenSocket);
+    WSACleanup();*/
     return true;
 }
 
@@ -614,14 +712,17 @@ bool startClient(HWND hWnd) {
 
     // Подключение к серверу
     iResult1 = connect(clientSocket1, (sockaddr*)&serverAddress, sizeof(serverAddress));
+    //
     if (iResult1 == SOCKET_ERROR) {
         HandleWinsockError("connect", hWnd);
+        
         closesocket(clientSocket1);
         WSACleanup();
         return 1;
     }
-    MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client", MB_OK);
-    //подключились
+    MessageBoxW(hWnd, L"Ошибок нет", L"client", MB_OK);
+    //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client", MB_OK);
+    //подключились 
     //SetWindowTextA(labelMainY, "Подключились");
     //char* prt =  (LPCWSTR)sendX;
     //
@@ -632,42 +733,6 @@ bool startClient(HWND hWnd) {
         HandleWinsockError("send", hWnd);
         return 1;
     }
-
-    //char buffer[BUFFER_SIZE];
-    //
-    //if (is15) {
-    //    iResult = recv(clientSocket1, (char*)&dataToReceive, sizeof(BoardData), 0);
-    //}
-    //else if (isPingpong) {
-    //    iResult = recv(clientSocket1, (char*)&pingClient, sizeof(PingPongData), 0);
-    //}
-
-    //if (iResult > 0) {
-    //    buffer[iResult] = '\0';
-    //    if (is15) {
-    //        //for (int i = 0; i < 16; i++) {
-    //            boardOnServer = dataToReceive;
-    //            //MessageBoxW(hWnd, setText(sizeof(dataToReceive)), L"client", MB_OK);
-    //            //}
-    //    SetWindowTextA(labelMainY, "1111");
-    //    }
-    //    else if (isPingpong) {
-    //        pingServer = pingClient;
-    //    }
-    //    
-    //    //std::cout << "Получено от сервера: " << buffer << std::endl;
-    //    
-
-    //}
-    //else if (iResult == 0) {
-    //    //std::cout << "Соединение с сервером закрыто" << std::endl;
-    //    SetWindowTextA(labelMainY, buffer);
-    //    break;
-    //}
-    //else {
-    //    HandleWinsockError("recv", hWnd);
-    //    break;
-    //}
 
     //closesocket(clientSocket1);
     //WSACleanup();
@@ -699,9 +764,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         x = _wtoi(text);
         //SetWindowText(labelMainY, setText(buttonId));
         //MessageBoxW(hWnd, L"Вы нажали кнопку!", std::to_wstring(x).c_str(), MB_OK);
-        result = manualswap(hWnd, x);
+        result = manualswap(hWnd, x); //boardonserver обновилась
         sendX = x;
         if (result) {
+            
+
+            
             //SetWindowTextW(hButton, setText(-1));
             hButtonNull = FindWindowExW(hWnd, NULL, L"BUTTON", L" ");
             SetWindowTextW(hButtonNull, setText(x));
@@ -716,12 +784,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             }*/
             //iResult1 = send(clientSocket1, (char*)&boardOnServer, sizeof(BoardData), 0);
+            
+            is15 = true;
             sendMessageToServer(hWnd);
-            for (int i = 0; i <= 15; i++) {
+            /*for (int i = 0; i <= 15; i++) {
                 HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
                 SetWindowText(hwndButtonById, setText(boardOnServer.board[i]));
 
-            }
+            }*/
+            
+            
+
+             
+
             
 
         }
@@ -739,7 +814,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         case IDM_NEWGAME: {
             startServer(hWnd);
-            
+            is15 = true;
+            /*char str[20];
+            itoa(65, str, 8);*/
             
 
         }
@@ -749,14 +826,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             
             is15 = true;
             startClient(hWnd);
-            sendMessageToServer(hWnd);
+            //sendMessageToServer(hWnd);
             
-            if (is15) {
+            /*if (is15) {
                 for (int i = 0; i <= 16; i++) {
                     HWND hwndButtonById = GetDlgItem(hWnd, 2000 + i * 4);
                     SetWindowText(hwndButtonById, setText(boardOnServer.board[i]));
                 }
-            }
+            }*/
             
 
         }
@@ -818,6 +895,7 @@ LRESULT CALLBACK ButtonAll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, U
     switch (uMsg)
     {
         case WM_MOUSEMOVE: {
+            
             POINT cursorPos = { xPos, yPos };
             std::wstring xStr = std::to_wstring(xPos);
             std::wstring yStr = std::to_wstring(yPos);
@@ -969,6 +1047,7 @@ LRESULT CALLBACK ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, 
         return 0;
 
     case WM_MOUSEMOVE:
+        
         if (isDragging) {
             POINT cursorPos;
             GetCursorPos(&cursorPos);
@@ -1309,4 +1388,11 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     //}
     //        
     //return (INT_PTR)FALSE;
+
+
+    
+    
+    
+
+
 }
