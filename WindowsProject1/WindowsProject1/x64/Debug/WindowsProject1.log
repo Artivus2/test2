@@ -1,15 +1,24 @@
-﻿Сборка начата 28.05.2025 20:41:17.
+﻿Сборка начата 11.06.2025 20:27:30.
 Уровень детализации журнала: Normal.     1>Проект "C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.vcxproj" в узле 2 (целевые объекты Build).
      1>PrepareForBuild:
          Структурированный вывод включен. Форматирование диагностики компилятора будет отражать иерархию ошибок. Подробнее см. https://aka.ms/cpp/structured-output.
        InitializeBuildStatus:
+         Создание "WindowsProject1\x64\Debug\WindowsProject1.tlog\unsuccessfulbuild", так как было задано "AlwaysCreate".
          Обращение к "WindowsProject1\x64\Debug\WindowsProject1.tlog\unsuccessfulbuild".
        ClCompile:
-         Для всех выходных данных обновления не требуется.
+         C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\bin\HostX64\x64\CL.exe /c /ZI /JMC /nologo /W3 /WX- /diagnostics:column /sdl /Od /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /permissive- /Fo"WindowsProject1\x64\Debug\\" /Fd"WindowsProject1\x64\Debug\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:prompt WindowsProject1.cpp drob.cpp
+         WindowsProject1.cpp
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(170,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(831,13): warning C4101: textXY: неиспользованная локальная переменная
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(981,11): warning C4101: cursorPos: неиспользованная локальная переменная
+         drob.cpp
+         Создание кода...
+     1>C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(823,1): warning C4715: startClient: значение возвращается не при всех путях выполнения
        ResourceCompile:
          Для всех выходных данных обновления не требуется.
        Link:
          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\bin\HostX64\x64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\x64\Debug\WindowsProject1.exe" /INCREMENTAL /ILK:"WindowsProject1\x64\Debug\WindowsProject1.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\x64\Debug\WindowsProject1.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\x64\Debug\WindowsProject1.lib" /MACHINE:X64 WindowsProject1\x64\Debug\WindowsProject1.res
+         WindowsProject1\x64\Debug\drob.obj
          WindowsProject1\x64\Debug\WindowsProject1.obj
          WindowsProject1.vcxproj -> C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\x64\Debug\WindowsProject1.exe
        FinalizeBuildStatus:
@@ -18,7 +27,15 @@
      1>Сборка проекта "C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.vcxproj" завершена (целевые объекты Build).
 
 Сборка успешно завершена.
-    Предупреждений: 0
+
+       "C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.vcxproj" (целевой объект Build ) (1) ->
+       (Целевой объект ClCompile) -> 
+         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(170,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(831,13): warning C4101: textXY: неиспользованная локальная переменная
+         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(981,11): warning C4101: cursorPos: неиспользованная локальная переменная
+         C:\Users\Илья\Documents\GitHub\cpp\test2\WindowsProject1\WindowsProject1.cpp(823,1): warning C4715: startClient: значение возвращается не при всех путях выполнения
+
+    Предупреждений: 4
     Ошибок: 0
 
-Прошло времени 00:00:00.20
+Прошло времени 00:00:02.81

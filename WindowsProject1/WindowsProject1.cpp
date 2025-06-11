@@ -5,14 +5,38 @@
 #include "framework.h"
 #include "WindowsProject1.h"
 #include "commctrl.h"
+//#include "Student.h"
+#include "drob.h"
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "Ws2_32.lib")
+
+using namespace std;
+
+//todo
+class SocketClient {
+
+};
+
+class SocketServer {
+
+};
+
+class Fifteens {
+
+};
+
+class PingPong {
+
+};
+
+
+
 
 
 #define MAX_LOADSTRING 100
 
 
-using namespace std;
+
 
 // Глобальные переменные:
 HINSTANCE hInst;                                // текущий экземпляр
@@ -21,13 +45,13 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // имя класса глав�
 
 HWND labelX = NULL;
 HWND labelY = NULL;
-HWND labelMainX = NULL;
-HWND labelMainY = NULL;
-HWND labelPX = NULL;
-HWND labelPY = NULL;
+HWND labelMainX{ NULL };
+HWND labelMainY{ NULL };
+HWND labelPX{ NULL };
+HWND labelPY{ NULL };
 //HWND buttons[16];
 vector<HWND> buttons;
-int xPosAbout(0), yPosAbout(0), xPos(0), yPos(0);
+int xPosAbout{ 0 }, yPosAbout{ 0 }, xPos{ 0 }, yPos{ 0 };
 
 // Отправить объявления функций, включенных в этот модуль кода:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -35,6 +59,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    Pingpong(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Drobi(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    ButtonProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
 LRESULT CALLBACK    ButtonProcLeft(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
 LRESULT CALLBACK    ButtonProcRight(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwData);
@@ -42,7 +67,7 @@ LRESULT CALLBACK    ButtonAll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 
 //drag&drop
-bool isDragging = false; // Флаг, указывающий, что происходит перетаскивание
+bool isDragging{ false }; // Флаг, указывающий, что происходит перетаскивание
 POINT dragOffset;       // Смещение мыши относительно верхнего левого угла кнопки
 
 
@@ -114,6 +139,9 @@ LPCWSTR setText(int a) {
 }
 
 
+
+
+
 void HandleWinsockError(const char* operation, HWND hwnd) {
     DWORD error = WSAGetLastError();
     if (error != 0) {
@@ -121,7 +149,7 @@ void HandleWinsockError(const char* operation, HWND hwnd) {
         std::wstring wOperation(operationLength, L' ');
         //mbstowcs(&wOperation[0], operation, operationLength);
         //MessageBoxW(hwnd, wsprintfW(buffer, L"%d", operation), L"Ошибка", MB_OK);
-        MessageBoxW(hwnd, setText((int)operationLength), L"Server", MB_OK);
+        //MessageBoxW(hwnd, setText((int)operationLength), L"Server", MB_OK);
         //std::cerr << "Winsock error during " << operation << ": " << error << std::endl;
         
         // Optionally, format the error message using FormatMessage
@@ -285,6 +313,53 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
+    
+
+    ////Student std1{ "петров", 3, new int[3] {3,4,5} };
+    ////Student std2{ "иавнов", 3, new int[3] {4,4,6} };
+    //Student std1;
+    ////strcpy_s(std1.name, 20, );
+    //std1.setName("Петров В.В.");
+    //std1.marks[0] = 10;
+    //std1.marks[1] = 10;
+    //std1.marks[2] = 9;
+    //double aver = std1.getAver();
+    //Student std2("Иванов В.В.");
+    ////std2.setName("Иванов В.В.");
+    //std2.marks[0] = 9;
+    //std2.marks[1] = 7;
+    //std2.marks[2] = 9;
+    //aver = std2.getAver();
+
+    //
+    //
+    ////// выполнение метода об
+    //std1.getAver();
+    //std2.getAver();
+
+    
+    //std1.Print(aver);
+
+
+    /*Point p1;
+    p1.max1;
+    Point p2;
+    p2.max1;*/
+
+    /*Student* students = new Student[2]
+    {
+        {"Студент 1", 3, new int[3] { 10, 10, 9 }},
+        {"Студент 2", 3, new int[3] { 8, 10, 8 }}
+    };*/
+
+    //delete std1;
+    //delete[] students;
+    //LittleStudent littl1;
+    string stroka1;
+    
+    
+    
+
     // TODO: Разместите код здесь.
     randomfill();
 
@@ -315,6 +390,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                 
             }
             listenClient(msg.hwnd);
+            //std2.labelInline = labelMainX;
+            //std2.getName();
             
             
         }
@@ -322,6 +399,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 
     }
+
+    
+
 
     return (int) msg.wParam;
 }
@@ -430,6 +510,10 @@ bool listenClient(HWND hWnd) {
 }
 
 bool listenServer(HWND hWnd) {
+
+    
+
+    
     std::vector<SOCKET> clientSockets; // Keep track of connected clients.
     u_long iMode = 1;
     //while (true) {
@@ -488,7 +572,7 @@ bool listenServer(HWND hWnd) {
                     int iResult2 = send(currentClientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
                     
                     if (iResult2 > 0) {
-                        MessageBoxW(hWnd, setText(boardOnServer.board[1]), L"server", MB_OK);
+                        //MessageBoxW(hWnd, setText(boardOnServer.board[1]), L"server", MB_OK);
                     }
                     
                     /*for (int i = 0; i <= 16; i++) {
@@ -612,7 +696,7 @@ bool sendMessageToClient(HWND hWnd) {
     
     
     if (is15) {
-        MessageBoxW(hWnd, setText(sizeof(BoardData)), L"server", MB_OK);
+        //MessageBoxW(hWnd, setText(sizeof(BoardData)), L"server", MB_OK);
         //MessageBoxW(hWnd, setText(sizeof(iResult)), L"client", MB_OK);
         iResult = recv(clientSocket, (char*)&boardOnServer, sizeof(BoardData), 0);
         for (int i = 0; i <= 16; i++) {
@@ -812,6 +896,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, Pingpong);
             break;
         }
+
+
+        case IDM_DROBI: {
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG2), hWnd, Drobi);
+            break;
+        }
+
         case IDM_NEWGAME: {
             startServer(hWnd);
             is15 = true;
@@ -902,7 +993,7 @@ LRESULT CALLBACK ButtonAll(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, U
             //SetWindowText(labelMainX, setText(xPos));
             //SetWindowText(labelMainY, setText(yPos));
             HWND hwndUnderMouse = ChildWindowFromPointEx(hwnd, cursorPos, CWP_ALL);
-            SetWindowText(labelMainX, setText(buttonId));
+            //SetWindowText(labelMainX, setText(buttonId));
             //SetWindowText(labelMainY, setText(buttonId));
 
 
@@ -1246,6 +1337,7 @@ INT_PTR CALLBACK Pingpong(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
         }
+        
         break;
     }
     return (INT_PTR)FALSE;
@@ -1253,20 +1345,32 @@ INT_PTR CALLBACK Pingpong(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
  //Обработчик сообщений для окна "О программе".
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    
+
     HWND hwndButton = (HWND)lParam;
     SetWindowSubclass(hwndButton, ButtonProc, 1, 0);
     switch (message) {
+    
+    case WM_COMMAND: {
+        if (LOWORD(wParam) == IDOK) {
+            //MessageBoxW(hDlg, L"Вы нажали кнопку!", L"start", MB_OK);
+            // функция расчета дробей
+            
+            MessageBoxW(hDlg, L"About", L"start", MB_OK);
+            EndDialog(hDlg, LOWORD(wParam));
+
+        }
+        break;
+    }
     case WM_DESTROY:
         EndDialog(hDlg, LOWORD(wParam));
         //PostQuitMessage(0);
 
         //return 0;
-    
+
     case WM_INITDIALOG:
         return (INT_PTR)TRUE;
-        
-        
+
+
 
     default:
         return DefWindowProc(hDlg, message, wParam, lParam);
@@ -1275,124 +1379,108 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
     return (INT_PTR)FALSE;
 
+}
+
+
+void GetTextFromEditControl(HWND hwndEdit) {
+    int len = GetWindowTextLength(hwndEdit) + 1;
+    TCHAR* buff = new TCHAR[len];
+
+    GetWindowText(hwndEdit, buff, len);
+
+    // Используйте buff здесь, например, выведите его в MessageBox
+    std::wstring text = buff;
+    MessageBox(NULL, text.c_str(), L"Текст из Edit Control", MB_OK);
+
+    delete[] buff;
+}
+
+
+INT_PTR CALLBACK Drobi(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+    {
+        wchar_t text[3];
+        int xn{ 0 }, xd{ 0 }, yn{ 0 }, yd{ 0 }, sn{ 0 }, sd{ 0 };
+        //HWND hwndButton = (HWND)lParam;
+        HWND edit1n = GetDlgItem(hDlg, IDC_EDIT1);
+        HWND edit1d = GetDlgItem(hDlg, IDC_EDIT2);
+        HWND edit2n = GetDlgItem(hDlg, IDC_EDIT3);
+        HWND edit2d = GetDlgItem(hDlg, IDC_EDIT4);
+
+        switch (message) {
+
+        case WM_COMMAND: {
+            if (LOWORD(wParam) == IDC_OK1) {
+                if (edit1n && edit1d && edit2n && edit2d) {
+                    GetWindowTextW(edit1n, text, sizeof(text) / sizeof(text[0]));
+                    xn = _wtoi(text);
+                    GetWindowTextW(edit1d, text, sizeof(text) / sizeof(text[0]));
+                    xd = _wtoi(text);
+                    GetWindowTextW(edit2n, text, sizeof(text) / sizeof(text[0]));
+                    yn = _wtoi(text);
+                    GetWindowTextW(edit2d, text, sizeof(text) / sizeof(text[0]));
+                    yd = _wtoi(text);
+
+                    Drob drob1(xn, xd);
+                    Drob drob2(yn, yd);
+
+                    Drob sum = drob1 + drob2;
+
+                    //доделать switch по listbox
+
+                    //вывод текста в SETWINDOWTEXT
+                    
+                    HWND nom = GetDlgItem(hDlg, IDC_STATIC_3N);
+                    HWND dom = GetDlgItem(hDlg, IDC_STATIC_3D);
+                    SetWindowTextW(nom, setText(sum.numerator));
+                    SetWindowTextW(dom, setText(sum.denominator));
+                    
+
+                    //Drob difference = drob1 - drob2;
+                    //Drob product = drob1 * drob2;
+                    //Drob quotient = drob1 / drob2;
+
+                }
+                else {
+                    MessageBox(NULL, L"Ошибка: Не удалось получить handle Edit Control.", L"Ошибка", MB_OK | MB_ICONERROR);
+                }
+                //MessageBoxW(hDlg, L"Вы нажали кнопку!", L"start", MB_OK);
+                // функция расчета дробей
+                //MessageBoxW(hDlg, L"Расчет", L"start", MB_OK);
+
+            }
+
+            if (LOWORD(wParam) == IDCANCEL  ) {
+                //MessageBoxW(hDlg, L"Вы нажали кнопку!", L"start", MB_OK);
+                // функция расчета дробей
+
+                //MessageBoxW(hDlg, L"drobi", L"отмена", MB_OK);
+                EndDialog(hDlg, LOWORD(wParam));
+
+            }
+            break;
+        }
+
+        case WM_DESTROY:
+            EndDialog(hDlg, LOWORD(wParam));
+            //PostQuitMessage(0);
+
+            //return 0;
+
+        case WM_INITDIALOG:
+            return (INT_PTR)TRUE;
 
 
 
-
-    //UNREFERENCED_PARAMETER(lParam);
-    ////HWND hButton = (HWND)(wParam);
-    //HWND hButton = GetDlgItem(hDlg, IDOK);
-    //labelX = GetDlgItem(hDlg, IDC_X);
-    //labelY = GetDlgItem(hDlg, IDC_Y);
-    ////DWORD style = GetWindowLong(labelX, GWL_STYLE);
-    
-    //
-    //switch (message)
-    //{
-    //
-    //
-
-    //case WM_INITDIALOG:
-    //    return (INT_PTR)TRUE;
-    //return (INT_PTR)FALSE;
-
-    //case WM_MOUSEMOVE: {
-
-    //    
-    //    //xPosAbout = LOWORD(lParam);  // Получаем X-координату
-    //    //yPosAbout = HIWORD(lParam);  // Получаем Y-координату
-    //    //POINT cursorPos;
-    //    //POINT cursorPos = { xPos, yPos };
-    //    ////std::wstring xStr = std::to_wstring(xPos);
-    //    ////std::wstring yStr = std::to_wstring(yPos);
-    //    //
-    //    //
-    //    //GetCursorPos(&cursorPos); // Получаем позицию курсора в экранных координатах
-    //    //ScreenToClient(hDlg, &cursorPos); // Преобразуем координаты курсора в координаты относительно кнопки
-    //    //std::wstring xStr = std::to_wstring(cursorPos.x);
-    //    //std::wstring yStr = std::to_wstring(cursorPos.y);
-    //    //SetWindowText(labelY, yStr.c_str());
-    //    //SetWindowText(labelX, xStr.c_str());
-    //    //
-
-    //    ////MessageBoxW(hDlg, L"Вы нажали кнопку!", L"отжата1", MB_OK);
-    //    if (isDragging) {
-    //        POINT cursorPos;
-    //        GetCursorPos(&cursorPos);
-    //        ScreenToClient(hDlg, &cursorPos); // Преобразуем в координаты относительно родительского окна
-
-    //        // Устанавливаем новую позицию кнопки
-    //        SetWindowPos(hDlg, NULL,
-    //            cursorPos.x - dragOffset.x,
-    //            cursorPos.y - dragOffset.y,
-    //            0, 0, SWP_NOSIZE | SWP_NOZORDER);
-    //    }
-    //    return 0;
-    //}
-
-    //case WM_COMMAND:
-    //    //int wmId = LOWORD(wParam);
-
-    //    //switch (wmId)
-    //    //{
-    //    //
-
-    //case WM_LBUTTONDOWN:
-    //    // Проверяем, нажата ли кнопка мыши над кнопкой
-    //    if (hDlg != NULL) {
-    //        POINT cursorPos;
-    //        GetCursorPos(&cursorPos);
-    //        ScreenToClient(hDlg, &cursorPos); // Преобразуем в координаты относительно кнопки
-
-    //        // Проверяем, находится ли курсор внутри области кнопки
-    //        RECT buttonRect;
-    //        GetClientRect(hDlg, &buttonRect);
-    //        if (PtInRect(&buttonRect, cursorPos)) {
-    //            isDragging = true;
-    //            dragOffset = cursorPos; // Запоминаем смещение
-    //            SetCapture(hDlg); // Захватываем мышь
-    //        }
-    //    }
-    //    return 0;
-
-    //    case WM_LBUTTONUP:
-    //        if (isDragging) {
-    //            isDragging = false;
-    //            ReleaseCapture(); // Освобождаем захват мыши
-    //        }
-    //        return 0;
+        default:
+            return DefWindowProc(hDlg, message, wParam, lParam);
+        }
 
 
-    //    /*if (wmId == IDOK) {
-    //        isDragging = false;
-    //    }*/
-    //    //    HWND hwndLabel = GetDlgItem(hDlg, IDC_STATIC2);
-    //    //    DWORD style = GetWindowLong(hwndLabel, GWL_STYLE);
-    //    //    if (style & WS_VISIBLE) {
-    //    //        // Скрываем text
-    //    //        ShowWindow(hwndLabel, SW_HIDE);
-    //    //        
-    //    //    }
-    //    //    else {
-    //    //        // Отображаем label
-    //    //        ShowWindow(hwndLabel, SW_SHOW);
-    //    //        
-    //    //    }
-    //    //}
-    //    if (LOWORD(wParam) == IDCANCEL)
-    //    {
-    //        EndDialog(hDlg, LOWORD(wParam));
-    //        return (INT_PTR)TRUE;
-    //    }
-    //    break;
-    //}
-    //        
-    //return (INT_PTR)FALSE;
-
+        return (INT_PTR)FALSE;
 
     
     
-    
+  
 
 
 }

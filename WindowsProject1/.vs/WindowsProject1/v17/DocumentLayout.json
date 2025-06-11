@@ -5,6 +5,14 @@
     {
       "AbsoluteMoniker": "D:0:0:{09D425A0-DCBB-480B-935C-FCF8F3E3C866}|WindowsProject1.vcxproj|C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\WindowsProject1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{09D425A0-DCBB-480B-935C-FCF8F3E3C866}|WindowsProject1.vcxproj|solutionrelative:WindowsProject1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{09D425A0-DCBB-480B-935C-FCF8F3E3C866}|WindowsProject1.vcxproj|C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\drob.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{09D425A0-DCBB-480B-935C-FCF8F3E3C866}|WindowsProject1.vcxproj|solutionrelative:drob.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{09D425A0-DCBB-480B-935C-FCF8F3E3C866}|WindowsProject1.vcxproj|C:\\USERS\\\u0418\u041B\u042C\u042F\\DOCUMENTS\\GITHUB\\CPP\\TEST2\\WINDOWSPROJECT1\\STUDENT.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{09D425A0-DCBB-480B-935C-FCF8F3E3C866}|WindowsProject1.vcxproj|solutionrelative:STUDENT.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -24,9 +32,35 @@
               "RelativeDocumentMoniker": "WindowsProject1.cpp",
               "ToolTip": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\WindowsProject1.cpp",
               "RelativeToolTip": "WindowsProject1.cpp",
-              "ViewState": "AgIAAPgBAAAAAAAAAAAUwPMBAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAIcFAAAAAAAAAAAAAJUFAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-04-23T12:26:55.392Z",
+              "WhenOpened": "2025-06-11T12:07:06.287Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Student.h",
+              "DocumentMoniker": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\Student.h",
+              "RelativeDocumentMoniker": "Student.h",
+              "ToolTip": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\Student.h",
+              "RelativeToolTip": "Student.h",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAABcAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-06-11T10:51:26.071Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "drob.h",
+              "DocumentMoniker": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\drob.h",
+              "RelativeDocumentMoniker": "drob.h",
+              "ToolTip": "C:\\Users\\\u0418\u043B\u044C\u044F\\Documents\\GitHub\\cpp\\test2\\WindowsProject1\\drob.h",
+              "RelativeToolTip": "drob.h",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAACgAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-06-09T13:33:44.143Z",
               "EditorCaption": ""
             }
           ]
